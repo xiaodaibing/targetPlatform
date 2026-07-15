@@ -1,0 +1,6 @@
+- [AI目标管理平台项目基线](project_ai_target_platform.md) — 一期范围、术语、澄清结论（2026-07-02闭环），与PDF冲突时以待澄清问题清单为准
+- [项目术语表](project-terminology.md) — 层级定义、拆分权重规则、强校验模式、合理性指标（孟加拉一期基线）
+- [一期范围确认基线](one-period-scope.md) — 主流程、移出项清单、指标简化，两轮澄清闭环结论，优先级高于PDF
+- [模块一：数据接入与达成计算](ref_data_ingestion_module.md) — 需求规格路径、R2设计期依赖、DCR数据来源菜单名、Kafka事件清单
+- [模块三：目标协同管理（PC双工作台）](ref_target_collaboration_module.md) — 38条AC、5个开放问题、跨模块依赖清单、一期字段规则、版本留痕节点
+- [模块四：执行追踪与复盘](ref_execution_tracking_module.md) — 4类异常类型/阈值、分级规则、5个核心实体、OQ-1/3/4高优开放问题
