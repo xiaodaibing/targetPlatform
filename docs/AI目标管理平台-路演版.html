@@ -1112,6 +1112,50 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
             </tbody>
           </table>
         </div>
+
+        <div class="output-box">
+          <strong>关键细节补充: 目标拆分不是一句“规则拆分”，而是一套可执行的分配机制</strong>
+          <div class="split-grid">
+            <div>
+              <pre class="diagram">逐层拆分链路
+国家总目标
+  -> 区域(REGION)
+  -> Dealer
+  -> 门店(SHOP)
+  -> Promoter
+  -> 机型(MODEL)
+
+每一层都重复 5 步:
+1. 读取该层对象清单
+2. 计算对象分数 = 历史达成率 + 资金盘 + 阵地数权重
+3. 归一化得到 weight
+4. 按 weight 分配父层目标
+5. 处理四舍五入残差,补给 score 最大对象
+
+目标: 保证下级合计 >= 上级目标</pre>
+            </div>
+            <div>
+              <div class="check-list">
+                <div class="check-item">
+                  <b>四种自动平衡模式</b>
+                  AI_WEIGHT 按 AI 初次权重重分配；HISTORY 按历史表现重分配；RATE 按达成率重分配；AVERAGE 等分未锁定对象。
+                </div>
+                <div class="check-item">
+                  <b>锁定与人工干预</b>
+                  业务可锁定重点区域、Dealer 或机型，锁定值在二次平衡时不动；人工改值后只重分配未锁定部分。
+                </div>
+                <div class="check-item">
+                  <b>三道强校验</b>
+                  CV-1 下级合计 >= 国家目标；CV-2 每区域下级合计 >= 区域目标；CV-3 每对象机型合计 >= 对象目标。
+                </div>
+                <div class="check-item">
+                  <b>异常与提交门槛</b>
+                  偏离 AI 区间、历史偏离、合计不平衡都会标红；存在未处理 RED 异常时不允许提交发布。
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section id="agent" class="section panel">
@@ -1268,6 +1312,28 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
         </div>
 
         <div class="output-box">
+          <strong>Spec 补充: 目标拆分阶段的关键行为</strong>
+          <div class="grid-2">
+            <div class="card">
+              <h3>拆分规则</h3>
+              <ul>
+                <li>拆分配置按国家 × 品牌 × 目标类型命中规则包，优先 P1，兜底 P3。</li>
+                <li>每层权重由历史达成率、资金盘、阵地数三项组合，入库时强校验三项权重和为 100。</li>
+                <li>对象或机型清单缺失时允许降级，但必须记录降级信息，不能静默忽略。</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>人工调整规则</h3>
+              <ul>
+                <li>人工修改某层值后，系统按选定模式自动平衡其余未锁定对象。</li>
+                <li>若锁定值之和已经大于等于上级目标，直接报 <code>LOCK_CONFLICT</code>，不做错误平衡。</li>
+                <li>所有手工改值、锁定、解锁、重平衡动作都进入调整日志，满足审计追溯。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="output-box">
           <strong>输出: 完整 Spec 示例</strong>
           <pre class="diagram">用户点击“生成三档建议”
   -> 系统校验历史数据充分性
@@ -1275,6 +1341,10 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
   -> 规则引擎生成保守 / 推荐 / 挑战 + 区间 + 置信度
   -> forecastBasisAgent 生成业务依据
   -> 页面展示结果并允许人工微调
+  -> 用户确认总目标后进入逐层拆分
+  -> 系统按 REGION -> Dealer -> SHOP -> PROMOTER -> MODEL 逐层分配
+  -> 人工可锁定重点对象并触发自动平衡
+  -> 强校验 + 异常检查通过后才允许发布
   -> 用户确认 / 跳过 AI / 直接人工输入
   -> 系统保存预测记录与确认留痕</pre>
         </div>
