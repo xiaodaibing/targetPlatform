@@ -1124,7 +1124,7 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
 
 每一层都重复 5 步:
 1. 读取该层对象清单
-2. 计算对象分数 = 历史达成率 + 资金盘 + 阵地数权重
+2. 计算对象分数 = 历史达成率 + 历史目标 + 阵地数权重 + dos
 3. 归一化得到 weight
 4. 按 weight 分配父层目标
 5. 处理四舍五入残差,补给 score 最大对象
@@ -1134,12 +1134,12 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
         <div>
           <div class="check-list">
             <div class="check-item">
-              <b>四种自动平衡模式</b>
-              AI_WEIGHT 按 AI 初次权重重分配；HISTORY 按历史表现重分配；RATE 按达成率重分配；AVERAGE 等分未锁定对象。
-            </div>
-            <div class="check-item">
               <b>锁定与人工干预</b>
               业务可锁定重点区域、Dealer 或机型，锁定值在二次平衡时不动；人工改值后只重分配未锁定部分。
+            </div>
+            <div class="check-item">
+              <b>四种自动平衡模式</b>
+              AI_WEIGHT 按 AI 初次权重重分配；HISTORY 按历史表现重分配；RATE 按达成率重分配；AVERAGE 等分未锁定对象。
             </div>
             <div class="check-item">
               <b>三道强校验</b>
@@ -1238,7 +1238,7 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
   -> AgentScope RuntimeContext
   -> Toolkit 工具注册
   -> 脱敏中间件
-   -> 模型服务 / 搜索工具
+  -> 模型服务 / 搜索工具
   -> 文本结果回写业务留痕</pre>
       </div>
     </div>
