@@ -27,6 +27,101 @@
       box-sizing: border-box;
     }
 
+    section[id] {
+      scroll-margin-top: 84px;
+    }
+
+    .nav a.active {
+      color: var(--text);
+      background: rgba(94, 161, 255, 0.16);
+      border-radius: 8px;
+    }
+
+    /* 横向流程条(主闭环) */
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: stretch;
+      margin: 14px 0 4px;
+    }
+    .flow .step {
+      flex: 1 1 130px;
+      min-width: 118px;
+      position: relative;
+      padding: 12px 12px 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(94, 161, 255, 0.10), rgba(123, 92, 255, 0.05));
+    }
+    .flow .step b {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .flow .step span {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .flow .step::after {
+      content: "→";
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--brand);
+      font-weight: 700;
+      z-index: 1;
+    }
+    .flow .step:last-child::after {
+      content: "";
+    }
+    .flow .step.hitl {
+      border-color: rgba(46, 211, 165, 0.55);
+      background: linear-gradient(180deg, rgba(46, 211, 165, 0.14), rgba(46, 211, 165, 0.04));
+    }
+    .flow .legend-hitl {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    /* 场景对照两栏 */
+    .story-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .story-col {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    .story-col.before {
+      background: linear-gradient(180deg, rgba(255, 122, 144, 0.09), rgba(255, 122, 144, 0.02));
+    }
+    .story-col.after {
+      background: linear-gradient(180deg, rgba(46, 211, 165, 0.10), rgba(46, 211, 165, 0.02));
+    }
+    .story-col h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+    .story-col.before h4 { color: var(--red); }
+    .story-col.after h4 { color: var(--green); }
+    .story-col ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #cfe0fb;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    @media (max-width: 760px) {
+      .story-compare { grid-template-columns: 1fr; }
+    }
+
     html {
       scroll-behavior: smooth;
     }
@@ -348,6 +443,10 @@
       font-size: 13px;
     }
 
+    .metric-grid {
+      grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+    }
+    .accent-red .value { color: #ff9fb0; }
     .accent-blue .value {
       color: #8fc0ff;
     }
@@ -681,6 +780,23 @@
     }
 
     @media print {
+      .panel, .card, .mini-card, .metric, .story-col, .flow .step, table, pre {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      pre.diagram {
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+        border-color: #d1d5db !important;
+      }
+      .flow .step {
+        background: #f3f4f6 !important;
+        border-color: #d1d5db !important;
+      }
+      .flow .step b { color: #111827 !important; }
+      .flow .step span { color: #374151 !important; }
+      .nav { display: none; }
+
       body {
         background: #fff;
         color: #111827;
@@ -746,6 +862,7 @@
       <a href="#delivery">交付</a>
       <a href="#risk">风险</a>
       <a href="#fit">项目价值</a>
+      <a href="#evolution">演进路线</a>
     </div>
   </div>
 
@@ -765,16 +882,16 @@
       </div>
       <div class="hero-answers">
         <div class="answer-card">
-          <strong>方案完整度</strong>
-          <span>覆盖业务闭环、产品形态、技术架构、交付计划与风险控制，既能展示价值，也具备落地路径。</span>
+          <strong>105 条可判真伪 AC</strong>
+          <span>PRD 评审闭环 → 4 份 ADR → 7 份建表级设计 → 跨模块一致性复核，验收口径可逐条核对。</span>
         </div>
         <div class="answer-card">
-          <strong>方案是否有竞争力</strong>
-          <span>核心竞争力在于更可信的经营建议、更短的交付路径和更低的实施成本。</span>
+          <strong>路演后 48 小时完成 Demo 对齐</strong>
+          <span>6 项差异决策 + 6 张修订工单回填文档，反馈闭环成文档资产，这是我的工作方式。</span>
         </div>
         <div class="answer-card">
-          <strong>落地可行性</strong>
-          <span>核心范围明确，实施路径清晰，关键依赖和主要风险已提前纳入方案设计。</span>
+          <strong>已对齐公司 TAM 大图</strong>
+          <span>核心表完成 metric_code 地基预留：未来扩指标是加数据行，不是改表结构。</span>
         </div>
       </div>
     </div>
@@ -807,7 +924,7 @@
       </div>
     </div>
 
-    <div class="grid-4">
+    <div class="grid-4 metric-grid">
       <div class="metric accent-blue">
         <span class="label">目标从创建到生效</span>
         <span class="value">≤ 5 天</span>
@@ -822,6 +939,11 @@
         <span class="label">AI 推荐采纳率</span>
         <span class="value">≥ 60%</span>
         <span class="note">AI 必须有用，但最终决策权依旧归业务负责人。</span>
+      </div>
+      <div class="metric accent-red">
+        <span class="label">达成率合理区间（北极星）</span>
+        <span class="value">85%~110%</span>
+        <span class="note">目标合理性核心度量：占比过高说明目标偏低，过低说明目标偏高。</span>
       </div>
       <div class="metric accent-purple">
         <span class="label">MVP 交付周期</span>
@@ -911,10 +1033,28 @@
     </div>
 
     <div class="story">
-      <p>
-        <strong>真实场景：</strong>
-        孟加拉 TECNO Q1 智能机目标 500K。过去的做法是线下拉会、Excel 拆解、层层加码、月中才看到问题、季度末靠印象复盘。平台上线后，T-7 自动完成数据读取，AI 给出保守 / 推荐 / 挑战三档建议与业务依据，经理微调确认后自动拆到区域、目标对象(Dealer / 门店 / Promoter)与机型，执行期通过异常看板及时发现“高 DOS 清尾机型压货”“区域节奏失衡”“零销量对象”问题，月底缺口直接给出补量建议，季度结束自动复盘并把结果回流大数据团队。这里的关键不是 AI 替代人，而是让人第一次有了可信的数据和建议。
-      </p>
+      <p><strong>真实场景：孟加拉 TECNO Q1 智能机目标 500K。</strong></p>
+      <div class="story-compare">
+        <div class="story-col before">
+          <h4>过去怎么干</h4>
+          <ul>
+            <li>线下拉会 7–10 天才定盘，Excel 拆解 2–3 天</li>
+            <li>每层留保险，压力层层加码，到一线已失真</li>
+            <li>月中报表才发现区域承接不足、清尾机型压货</li>
+            <li>季度末靠印象复盘，经验留不下来</li>
+          </ul>
+        </div>
+        <div class="story-col after">
+          <h4>平台上线后</h4>
+          <ul>
+            <li>T-7 自动读数，AI 三档建议 + 业务依据，微调一键确认</li>
+            <li>自动拆到区域 / 目标对象(Dealer/门店/Promoter) / 机型，强校验兜底</li>
+            <li>执行期异常当天标红：高 DOS 清尾压货、区域节奏失衡、零销量对象</li>
+            <li>月底缺口给出补量建议，周期复盘自动生成并回流预测能力</li>
+          </ul>
+        </div>
+      </div>
+      <p class="footnote" style="margin-top: 10px">关键不是 AI 替代人，而是让人第一次有了可信的数据和建议。</p>
     </div>
 
     <div class="grid-3" style="margin-top: 16px">
@@ -934,14 +1074,17 @@
 
     <div class="output-box">
       <strong>场景拆解图</strong>
-      <pre class="diagram">T-7 数据汇集
-  -> 国家经理看三档建议与业务依据
-  -> 人工确认总目标
-  -> 系统按规则拆到区域 / 目标对象(Dealer/门店/Promoter) / 机型
-  -> 强校验 + 自动平衡 + 发布
-  -> 执行期追踪 / 异常分级 / 责任人触达
-  -> 月底 Gap 补量建议
-  -> 周期复盘 + 结果回流预测能力</pre>
+      <div class="flow">
+        <div class="step"><b>T-7 数据汇集</b><span>六源自动读取近 12 个月</span></div>
+        <div class="step"><b>AI 三档建议</b><span>保守 / 推荐 / 挑战 + 业务依据</span></div>
+        <div class="step hitl"><b>人工确认总目标</b><span class="legend-hitl">决策人拍板</span></div>
+        <div class="step"><b>规则拆分</b><span>区域 → 目标对象 → 机型</span></div>
+        <div class="step hitl"><b>强校验 + 发布</b><span>下级合计 ≥ 上级，0 容忍</span></div>
+        <div class="step"><b>执行追踪</b><span>异常分级，红色 1 小时触达</span></div>
+        <div class="step"><b>Gap 补量</b><span>月底缺口给补量建议</span></div>
+        <div class="step"><b>复盘回流</b><span>结果回流优化下期预测</span></div>
+      </div>
+      <p class="footnote">绿色节点为人工确认点（HITL）：AI 只建议，人来拍板。</p>
     </div>
 
     <div class="output-box">
@@ -1498,9 +1641,9 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
       </table>
     </div>
 
-      <div class="footnote">
+    <div class="footnote">
       一期优先聚焦目标制定、拆解、发布、追踪与复盘闭环，执行期更深层的智能建议能力可在后续版本持续增强。
-      </div>
+    </div>
   </section>
 
   <section id="fit" class="section panel">
@@ -1569,7 +1712,7 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
     </div>
   </section>
 
-  <section class="section panel">
+  <section id="evolution" class="section panel">
     <div class="section-head">
       <div>
         <div class="section-no">补充说明</div>
@@ -1610,5 +1753,34 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
   </section>
 
 </div>
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('.nav a[href^="#"]'));
+    var sections = links.map(function (a) { return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+
+    // 导航高亮跟随
+    function spy() {
+      var pos = window.scrollY + 100;
+      var current = sections[0];
+      sections.forEach(function (s) { if (s && s.offsetTop <= pos) current = s; });
+      links.forEach(function (a) {
+        a.classList.toggle('active', current && a.getAttribute('href') === '#' + current.id);
+      });
+    }
+    window.addEventListener('scroll', spy, { passive: true });
+    spy();
+
+    // ← / → 章节间跳转(演讲模式)
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      var pos = window.scrollY + 100;
+      var idx = 0;
+      sections.forEach(function (s, i) { if (s.offsetTop <= pos) idx = i; });
+      var next = e.key === 'ArrowRight' ? Math.min(idx + 1, sections.length - 1) : Math.max(idx - 1, 0);
+      sections[next].scrollIntoView({ behavior: 'smooth' });
+      e.preventDefault();
+    });
+  })();
+</script>
 </body>
 </html>
