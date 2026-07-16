@@ -11,10 +11,9 @@ metadata:
 
 **拆解层级（孟加拉一期固定）**：
 ```
-国家 → 区域 → Dealer → 门店 → Promoter → 机型
+国家 → 区域 → 目标对象(Dealer/门店/Promoter) → 机型
 ```
-- 客户 = Dealer（经销商）
-- 人员 = Promoter（促销员）
+- 目标对象 = 客户(Dealer 经销商) / 门店 / 人员(Promoter 促销员) 三类，同一层级并列
 - 一期不涉及 Supervisor 层级（已在澄清中确认）
 
 **试点范围**：孟加拉；品牌 TECNO / Infinix。

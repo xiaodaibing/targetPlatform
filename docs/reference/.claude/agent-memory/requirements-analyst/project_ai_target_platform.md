@@ -20,7 +20,7 @@ AI目标管理平台一期（孟加拉试点）项目基线，两轮澄清已于
 - 客户 = Dealer（经销商）
 - 人员（一期）= Promoter（R6确认，Supervisor/区域经理预置但非一期主要对象）
 - 目标类型：SI（进货）/ SO（销出）/ ST（零售）
-- 拆解层级：国家→区域→Dealer→门店→Promoter→机型
+- 拆解层级：国家→区域→目标对象(Dealer/门店/Promoter)→机型
 - 品牌：TECNO / Infinix（itel 二期）
 - 一期试点国家：孟加拉
 

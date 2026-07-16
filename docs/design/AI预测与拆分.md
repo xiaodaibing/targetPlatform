@@ -245,7 +245,7 @@ PENDING ──► SPLITTING ──► DRAFT ──► ADJUSTING ──► VALIDA
 
 | 方法 | 语义 | 错误码触发条件 |
 |------|------|--------------|
-| `SplitResultDTO split(SplitRequest)` | 接确认总目标,逐层拆分(国家→区域→Dealer→门店→Promoter→机型),写初稿+跑异常,status→DRAFT | `SPLIT_NO_RULE`:按 §3b 匹配顺序,该 国家/品牌/目标类型 既无 P1 专属配置也无 P3 兜底配置(enabled)(AC-08/AC-08c) |
+| `SplitResultDTO split(SplitRequest)` | 接确认总目标,逐层拆分(国家→区域→目标对象 Dealer/门店/Promoter→机型),写初稿+跑异常,status→DRAFT | `SPLIT_NO_RULE`:按 §3b 匹配顺序,该 国家/品牌/目标类型 既无 P1 专属配置也无 P3 兜底配置(enabled)(AC-08/AC-08c) |
 | `SplitResultDTO rebalance(RebalanceRequest)` | 人工改某层值后按模式重分配未锁定部分,锁定值不动,重跑异常,status→ADJUSTING | `LOCK_CONFLICT`:**仅表**锁定值之和≥上级目标、无可分配余量(AC-10/11);`@Version` 乐观锁并发冲突**内部重试或提示重载**,不复用 LOCK_CONFLICT |
 | `ValidationResultDTO validate(Long targetPlanId)` | 强校验 CV-1/2/3(≥ 且 0 容忍);通过 status→VALIDATION_PASS,失败→VALIDATION_FAIL | `VALIDATION_FAILED`:任一 CV 不过,`failures[]` 附 level/name/subtotal/parentValue/gap(AC-12);**存在未处理 RED 异常时亦拦截**(AC-21) |
 | `SplitResultDTO getSplitResult(Long targetPlanId)` | 工作台确认页展示当前树 + 异常 | 只读幂等 |
