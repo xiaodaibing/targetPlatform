@@ -861,8 +861,8 @@
       <a href="#spec">核心能力</a>
       <a href="#delivery">交付</a>
       <a href="#risk">风险</a>
-      <a href="#fit">项目价值</a>
       <a href="#evolution">演进路线</a>
+      <a href="#builder-fit">为什么是我</a>
     </div>
   </div>
 
@@ -1267,7 +1267,7 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
 
 每一层都重复 5 步:
 1. 读取该层对象清单
-2. 计算对象分数 = 历史达成率 + 历史目标 + 阵地数权重 + dos
+2. 计算对象分数 = 历史平均销量 + 历史达成率 + 历史目标 + 阵地数权重 + dos
 3. 归一化得到 weight
 4. 按 weight 分配父层目标
 5. 处理四舍五入残差,补给 score 最大对象
@@ -1603,12 +1603,6 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
         </tr>
         <tr>
           <td>技术</td>
-          <td>大数据预测延迟或不可用。</td>
-          <td><span class="risk-high">高</span></td>
-          <td>明确 SLA，预测失败降级人工设定，业务主流程不阻塞。</td>
-        </tr>
-        <tr>
-          <td>技术</td>
           <td>LLM 无离线兜底。</td>
           <td><span class="risk-medium">中</span></td>
           <td>数值 / 文本解耦，LLM 失败回退规则模板，不影响预测、拆分、校验、发布。</td>
@@ -1646,76 +1640,9 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
     </div>
   </section>
 
-  <section id="fit" class="section panel">
-    <div class="section-head">
-      <div>
-        <div class="section-no">Section 7</div>
-        <h2>项目价值与实施基础</h2>
-        <p>从准备程度、关键优势与扩展基础三个方面说明项目具备持续推进条件。</p>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <h3>实施基础</h3>
-        <ul>
-          <li>核心需求已完成梳理，验收标准明确。</li>
-          <li>关键架构与合规方向已经确定。</li>
-          <li>主要接口、表结构、边界与约束设计清晰。</li>
-          <li>对外集成边界明确，后续联调路径清楚。</li>
-          <li>演示范围与实施范围已经完成统一。</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>关键风险控制</h3>
-        <ul>
-          <li>不自建预测模型，直接复用大数据能力，避免引入数据科学栈。</li>
-          <li>AI 严格采用人工确认机制，不把模型作为最终决策者，避免业务信任和合规失控。</li>
-          <li>单体应用降低分布式复杂度，同时通过清晰边界为未来拆分预留路径。</li>
-          <li>核心数据结构已为多指标扩展预留空间，后续演进无需推倒重来。</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="grid-3" style="margin-top: 16px">
-      <div class="mini-card">
-        <h3>最快</h3>
-        <p>依托现有技术基座、设计先行和接口解耦，前两周即可看到阶段性成果。</p>
-      </div>
-      <div class="mini-card">
-        <h3>最稳</h3>
-        <p>方案把业务指标、工程设计、依赖管理、风险控制连接成完整链路，核心链路具备降级与兜底。</p>
-      </div>
-      <div class="mini-card">
-        <h3>最低成本</h3>
-        <p>不做冗余建设、不提前做多国复杂抽象，用最小必要投入换取试点成功和后续扩展能力。</p>
-      </div>
-    </div>
-
-    <div class="table-wrap" style="margin-top: 16px">
-      <table>
-        <thead>
-        <tr>
-          <th>已落地</th>
-          <th>待实现</th>
-          <th>这说明什么</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td>需求、架构、设计、边界梳理、演示范围对齐与实施基线</td>
-          <td>业务编码、单元测试、外部系统真实联调与模型服务合规落地</td>
-          <td>前期定义工作充分，能够减少后续实现阶段的返工与不确定性。</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
   <section id="evolution" class="section panel">
     <div class="section-head">
       <div>
-        <div class="section-no">补充说明</div>
         <h2>演进路线</h2>
         <p>平台不仅服务一期试点，也为后续能力扩展和多国复制预留了空间。</p>
       </div>
@@ -1752,6 +1679,55 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
     </div>
   </section>
 
+  <section id="builder-fit" class="section panel">
+    <div class="section-head">
+      <div>
+        <div class="section-no">Final</div>
+        <h2>我为什么适合做 Builder</h2>
+        <p>Builder 不是比谁会讲概念，而是比谁更懂业务、更会收敛、更能把复杂项目稳定落地。</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>我具备的关键能力</h3>
+        <ul>
+          <li>我能先抓主问题，再做功能设计。这个项目最核心的不是“多几个页面”，而是让目标制定、拆分、发布、追踪、复盘形成可信闭环。</li>
+          <li>我能把模糊诉求快速收敛成可执行范围，明确一期做什么、不做什么、预留什么，避免项目从第一天就失控。</li>
+          <li>我能同时看业务、数据、架构、接口和实施节奏，不会只在单一视角里做局部最优。</li>
+          <li>我能正确使用 AI：把可解释、可校验的数值链路留给规则和数据，把 LLM 放在辅助建议和表达层，保证系统可信而不是炫技。</li>
+          <li>我能把风险前置到设计阶段处理，提前梳理外部依赖、合规边界、验收口径和降级路径，减少开发期返工。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>为什么这个项目我能做成</h3>
+        <ul>
+          <li>我已经把这个项目从“一个想法”拆成了“可执行主链路”，并且把预测、拆分、强校验、追踪、复盘之间的关系理顺了。</li>
+          <li>我没有把方案做成空泛平台，而是主动收敛到孟加拉单国试点、销量单指标、人工确认闭环，保证首阶段能真正上线。</li>
+          <li>我已经把最容易翻车的部分提前拆开了：外部数据依赖、大数据预测边界、模块职责、接口契约、合规与降级路径，都有明确处理方式。</li>
+          <li>我既关注 5 周内的最小可交付，也在规则包、多指标、全球复制这些关键点上留了地基，后续演进不需要推倒重来。</li>
+          <li>这说明我不是只会给方向的人，而是能把方向变成落地路径、把复杂问题变成可交付结果的人。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top: 16px">
+      <div class="mini-card">
+        <h3>懂业务</h3>
+        <p>抓住目标失真、拆解低效、执行不透明这三个核心痛点，不被表面需求和展示功能带偏。</p>
+      </div>
+      <div class="mini-card">
+        <h3>懂落地</h3>
+        <p>知道什么必须一期做、什么必须砍掉、什么只做预留，能把方案收敛成真正可交付的节奏。</p>
+      </div>
+      <div class="mini-card">
+        <h3>懂控制</h3>
+        <p>提前把依赖、合规、接口、验收与降级路径讲清楚，把项目风险尽量消灭在编码之前。</p>
+      </div>
+    </div>
+
+  </section>
+
 </div>
 <script>
   (function () {
@@ -1760,6 +1736,15 @@ Kafka: 数据就绪 / 达成更新 / 数据源异常
 
     // 导航高亮跟随
     function spy() {
+      var bottomThreshold = document.documentElement.scrollHeight - window.innerHeight - 8;
+      if (window.scrollY >= bottomThreshold) {
+        var last = sections[sections.length - 1];
+        links.forEach(function (a) {
+          a.classList.toggle('active', last && a.getAttribute('href') === '#' + last.id);
+        });
+        return;
+      }
+
       var pos = window.scrollY + 100;
       var current = sections[0];
       sections.forEach(function (s) { if (s && s.offsetTop <= pos) current = s; });
