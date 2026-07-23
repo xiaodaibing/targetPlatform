@@ -1,42 +1,46 @@
 # ADR-0001：AI / Agent 框架选型 AgentScope Java（一期即引入 LLM + HITL）
 
-- 状态：已采纳
-- 日期：2026-07-02
-- 关联：`docs/requirements/待澄清问题清单.md`（决策 F1）、`docs/reference/agentscope-java-guide.md`
+- 状态：**已废弃（2026-07-23，第四轮澄清 E-3）**
+- 原状态：已采纳（2026-07-02）
+- 日期：2026-07-02　废弃日期：2026-07-23
+- 关联：`docs/requirements/第四轮澄清-MVP重定基线.md`（E-3）、`docs/reference/目标&达成管理MVP.md`
 
-## 背景
+## 废弃说明
 
-AI 目标管理平台的 AI 能力包含两类：(1) 数值预测（见 ADR-0002，已外部化）；(2) LLM 类能力——业务语言依据、复盘报告、策略建议，以及未来的目标规划/风险预警等 Agent 编排。
+第四轮澄清（2026-07-23）确认：**一期不引入任何 LLM / Agent 能力**。产品方提交的新 MVP 全文未涉及 AI；总目标测算已明确为可配置公式，人员目标拆解为国家规则包内的确定性算法，二者都不需要 LLM 参与。原决策所支撑的能力（业务语言依据、复盘报告、策略建议、市场情报搜索、执行期即时建议）一期全部不做。
 
-PDF 原稿主张"一期不依赖大模型、Agent 放二期"（风控考虑）。但需要一个统一的 Agent 框架承载 LLM 能力与后续 Agent 编排，且须与内部 Hulk（Spring Cloud Netflix，Java）技术栈一致。团队规模小（1 PM + 2 前端 + 3 后端 + 1 测试），不宜自研 Agent 基座。
+**随之作废的内容：**
 
-## 选项
+- AgentScope Java 依赖与 `com.transsion.goal.agent` 包
+- `forecastBasisAgent`、`reviewAgent` 及其提示词设计与输出示例（原 D-6）
+- 市场情报搜索工具（原 D-5）
+- `docs/design/00-契约基线-AgentScope与预测.md` 整份文档
+- ADR-0004（LLM 数据出境合规）——见该文件废弃说明
 
-1. **AgentScope Java 2.0.0-RC3（阿里通义）** — 优点：Java 原生（JDK 17+/Reactor），与 Hulk/Spring 以单例 Bean 集成无缝；内生 ReAct/工具/HITL/记忆/权限/流式；仓库内已有参考实现 `com.transsion.fpm.rebate.agent.agentscope`；模型层可切 DashScope/OpenAI/Anthropic 等。缺点：RC 版（需留意升稳定版）；需 LLM Key，无离线兜底。
-2. **自研 / 直接裸调 LLM SDK** — 优点：轻。缺点：ReAct 循环、工具、HITL、记忆、权限全要自建；重复造轮子，团队负担重。
-3. **一期完全不引入 LLM（沿用 PDF 原稿）** — 优点：无 LLM 成本/合规负担。缺点：业务依据/复盘/策略只能规则+模板硬编，价值弱；二期切换框架有返工。
+**保留价值**：本 ADR 记录的选型分析在**二期重新评估 AI 能力**时仍有参考价值，故保留文件不删除。二期若重启，需重新评估 AgentScope 的稳定版本、LLM 成本与出境合规，不得直接沿用本文档的「已采纳」结论。
 
-## 决策
+## 背景（历史记录，仅供二期参考）
 
-选 **选项 1：AgentScope Java 2.0.0-RC3**，且**一期即引入 LLM（方案 A）**：
+原判断：平台 AI 能力分两类——数值预测（ADR-0002，已外部化）与 LLM 类能力（业务语言依据、复盘报告、策略建议、Agent 编排）。需要统一 Agent 框架承载，且须与内部 Hulk（Spring Cloud Netflix，Java）技术栈一致；团队规模小，不宜自研 Agent 基座。
 
-- LLM Agent 承载"业务语言依据、复盘报告、策略建议"文本能力与流程编排。
-- **全程人工确认（HITL）**：AI 只做建议，所有目标/审批决策由人工拍板，符合"AI 不替代决策"的风控底线。
-- 入口用 `agentscope-harness`；Agent/Model/Toolkit 做成 Spring 单例 Bean，业务工具做 `@Component`；每次 `call` 必传 `RuntimeContext(userId, sessionId)` 做多租户隔离。
-- 模型 Provider 一期选型与 LLM 数据出境合规绑定，见 ADR-0004。
+## 选项（历史记录）
 
-此决策修订 PDF 原稿及澄清 D1"一期不依赖大模型"的表述。
+1. **AgentScope Java 2.0.0-RC3（阿里通义）** — 优点：Java 原生（JDK 17+/Reactor），与 Hulk/Spring 单例 Bean 集成无缝；内生 ReAct/工具/HITL/记忆/权限/流式；仓库内已有参考实现。缺点：RC 版；需 LLM Key，无离线兜底。
+2. **自研 / 裸调 LLM SDK** — 缺点：ReAct 循环、工具、HITL、记忆、权限全要自建。
+3. **一期完全不引入 LLM** — 优点：无 LLM 成本与合规负担。缺点：（当时判断）业务依据/复盘/策略只能规则+模板硬编，价值弱。
 
-## 后果
+## 后果（废弃后）
 
-**正面**：AI 能力与 Java 技术栈统一；HITL + 权限系统天然满足风控；二期 Agent 编排（目标规划/风险预警等）在同一框架内平滑扩展，无返工。
+**正面**：
+- 移除 LLM API Key、调用成本、跨境合规三项一期风险，ADR-0004 一并废弃
+- 移除对 RC 版框架的依赖，降低实现期不确定性
+- M02 从「AI 预测与拆分」收敛为「目标测算与拆解」，职责更清晰，包名由 `forecast` 改为 `calc`
 
-**负面 / 代价**：
-- 引入 LLM 依赖：需 LLM API Key，AgentScope 无离线兜底，**调用时才失败**——须在调用处（SSE/接口）兜异常并降级（无 LLM 输出时回退到规则/人工）。
-- LLM 调用成本（token/并发）需评估与治理。
-- RC 版本风险：锁定 `2.0.0-RC3`，关注升稳定版；Provider 模型已迁出 core，须引 `agentscope-extensions-model-*`。
+**代价**：
+- 平台更名：「AI 目标管理平台」→「目标&达成管理平台」，需同步全部文档与对外材料
+- 竞选/汇报叙事中的「AI 驱动」卖点减弱，需改以「多国规则包沉淀与复制」为主线
+- 二期若重启 AI 能力，需重新做框架选型与合规评估
 
 **后续待办**：
-- ADR-0004 定 LLM Provider 与数据出境合规方案。
-- 设计期定 Agent 清单、工具边界、system prompt、StateStore（生产用 Redis）与并发模型。
-- 阻塞调用（`block()/blockLast()`）放专用线程池，勿阻塞 Web 容器线程。
+- [ ] 全仓库移除 AgentScope 相关依赖描述（CLAUDE.md 技术栈、契约基线三、两份设计文档）
+- [ ] `docs/reference/agentscope-java-guide.md` 标注为「二期候选参考资料，一期不使用」，不删除

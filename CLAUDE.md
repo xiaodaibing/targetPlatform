@@ -4,21 +4,22 @@
 > 本文件为可复用模板:落地到具体项目时,把 `CLAUDE.md` 放到项目根目录,替换全部〈...〉占位符,并按项目实际情况增删各小节。
 
 ## 1. 项目概览
-- 名称: AI 目标管理平台
-- 一句话目标: 面向传音(TECNO/itel/Infinix)全球多国渠道,把 SI/SO/ST 销售目标的**制定→拆解→确认→发布→执行追踪→复盘**做成 AI 辅助的全流程闭环,给国家/品牌经理、区域经理(RSM)、渠道执行层(Dealer/门店/Promoter)使用;一期孟加拉试点,品牌 TECNO/Infinix。详见 `docs/product-vision.md`。
-- 架构形态:**单体应用 + 公司注册中心集成**(决策见 ADR-0003)。仓库仅保留**一个前端项目 + 一个后端项目**。业务按**包级模块(有界上下文)**划分;**模块间经应用层门面接口(facade)协作**;对**外部系统**经 **Eureka 注册发现 + OpenFeign** 调用。共享契约置于 **common 包**;**禁止模块间直连对方表,禁止用 Feign 调本应用内部模块**。模块划分见下方清单。
+- 名称: 目标&达成管理平台（原「AI 目标管理平台」，2026-07-23 更名，见 ADR-0001 废弃说明）
+- 一句话目标: 把各国散落在 Excel 里的目标测算与拆解公式沉淀为**可配置的国家规则包**,一键生成国家总目标与人员目标、自动追踪达成并预警异常;一期孟加拉试点,品牌 Infinix,目标类型 SO,目标对象人员(促销员 BP)。详见 `docs/product-vision.md`。
+- **一期核心结构(务必先理解)**:**总目标与人员目标是两条并行的目标线,无强依赖**。总目标自己测算、确认即生效(不审批);人员目标按国家规则包批量生成,提交时若存在同期总目标则做**提示性校验(合计 ≥ 总目标×90%),仅提示不阻断**,随后接公司 BPM 审批,通过后发布。**一期不存在「下级合计 ≥ 上级」的阻断式强校验**。
+- **一期不引入任何 AI / LLM / Agent 能力**(第四轮澄清 E-3,ADR-0001/0004 已废弃)。总目标为公式化测算,人员目标为确定性算法,均无模型参与。
+- 架构形态:**单体应用 + 公司注册中心集成**(决策见 ADR-0003)。仓库仅保留**一个前端项目 + 一个后端项目**。业务按**包级模块(有界上下文)**划分;**模块间经应用层门面接口(facade)协作**;对**外部系统**经 **Eureka 注册发现 + OpenFeign** 调用。共享契约置于 **common 包**;**禁止模块间直连对方表,禁止用 Feign 调本应用内部模块**。
 - 技术栈:
   - 后端:基于 **Spring Cloud Netflix** 的公司内部微服务框架 **Hulk**(`com.transsion.hulk`)。父 BOM:`com.transsion.hulk:hulk-parent:4.0.0.RELEASE`;能力以 `hulk-framework-starter-*` 形式引入(服务发现:`hulk-framework-starter-eureka`)。ORM 用 **MyBatis-Plus**。Java 版本以 Hulk 4.0 BOM 为准(待 architect 确认),构建用 **Maven**。后端应用 groupId 约定 `com.transsion.goal`,业务包按模块划分(如 `com.transsion.goal.<module>`)。
-  - 数据/中间件:MySQL + Redis + ClickHouse(达成明细/大数据量查询)、Kafka。外部系统一律 **API 定时拉取,不做实时同步**。
-  - **AI / Agent 框架**:**AgentScope Java 2.0.0-RC3**(`io.agentscope`,阿里通义;推荐入口 `agentscope-harness`,JDK 17+/Reactor,与 Hulk/Spring 以单例 Bean 集成)。速查手册见 `docs/reference/agentscope-java-guide.md`,仓库内参考实现 `com.transsion.fpm.rebate.agent.agentscope`。模型经 `ModelRegistry` 接 DashScope(通义千问)/OpenAI/Anthropic 等,**需 LLM API Key,无离线兜底**;工具做成 Spring `@Component` 再 `toolkit.registerTool`,每次 call 必传 `RuntimeContext(userId,sessionId)`。
-  - **数值预测(决策 F2)**:预测**基准值实时调用大数据团队获取**,**三档(保守/推荐/挑战)与推荐区间由本系统按配置规则在基准上生成**;本系统**不自建 Prophet/SARIMA 等模型、不做特征工程/模型训练、不需本侧数据科学家**。大数据团队有自有数据湖(本系统无需开放数据出口),其实时预测接口契约与 SLA 待 ADR;无预测时降级人工设定。
-  - **一期即引入 LLM(决策 F1,HITL)**:一期以 AgentScope LLM Agent 承载"业务依据/复盘/策略"文本能力与流程编排,数值预测为其工具,**决策全程人工确认,AI 不自动决策**。随之新增依赖:LLM API Key、调用成本、**海外数据出境合规**(渠道数据发往 LLM 需脱敏/合规评估)——详见 `docs/requirements/待澄清问题清单.md`。
-  - 前端:基于 **Vben Admin**(Vue3 + Vite + TypeScript + Ant Design Vue,pnpm + monorepo + turbo)的公司内部前端框架。一期仅 **PC 端**;移动端沿用既有 **DCR APP(React Native,另有专门团队)**,本平台一期仅"触发通知",不建移动端。
+  - 数据/中间件:MySQL + Redis + ClickHouse(达成明细/大数据量查询)、Kafka。外部系统一律 **API 定时拉取或事件驱动,不做实时同步**。
+  - **外部系统依赖**:大数据团队(**历史指标查询**,非预测,见 ADR-0002)、DCR(渠道销售明细/季节参数/人员与门店/调店记录)、产品库(机型与 HSP/平板/重点机型标记)、库存、激活(UAC)、**公司 BPM(人员目标审批,见 ADR-0005)**、**DCR APP(通知触发 + APP 端页面由对方实现,本平台只出接口)**。
+  - 前端:基于 **Vben Admin**(Vue3 + Vite + TypeScript + Ant Design Vue,pnpm + monorepo + turbo)的公司内部前端框架。一期仅 **PC 端**;**移动端沿用既有 DCR APP(React Native,另有专门团队),本平台提供接口与交互设计,不建移动端工程**。
+  - ~~AI / Agent 框架 AgentScope~~:**一期不使用**(ADR-0001 已废弃)。`docs/reference/agentscope-java-guide.md` 保留为二期候选参考资料。
 - 业务模块清单(单体内包级模块,有界上下文;详见 `docs/requirements/<模块>.md`):
-  1. **数据接入与达成计算** — 外部数据定时拉取、可用性分级与降级、SI/SO/ST 达成取数计算
-  2. **AI 预测与拆分** — 三档预测、规则拆分、自动平衡、强校验、拆分阶段异常
-  3. **目标协同管理(PC 双工作台)** — 目标创建/确认/发布、流程配置、版本留痕、四级权限隔离、通知触发
-  4. **执行追踪与复盘** — 达成追踪、Gap 分析、执行异常与分级处置、基础复盘、结果回流
+  1. **数据接入与达成计算**(`dataingest`) — 外部数据定时拉取、可用性分级与降级、测算指标供给、SO 达成计算(实时或 T+1)、销售明细
+  2. **目标测算与拆解**(`calc`,原「AI 预测与拆分」/ `forecast`,**已更名换包**) — 总目标公式化测算与机型分解、国家规则包与层级链路匹配、人员目标批量拆解(孟加拉系数法)、人员目标预检、提示性校验
+  3. **目标协同管理**(`workbench`) — 总目标与人员目标的 CRUD/调整/日志、BPM 审批集成、版本留痕、权限隔离、通知触发、APP 接口出口
+  4. **执行追踪与预警**(`tracking`,原「执行追踪与复盘」,**已去掉复盘**) — 达成追踪与趋势明细、达成预警(达成率 < 时间进度×30%)、N 天 0 销量异常、APP 数据供给
 
 ## 2. 文档地图(单人维持一致性的关键)
 所有产物都在仓库里、由本节索引。开工前先读对应文档。
@@ -82,10 +83,11 @@
 子代理定义见全局 `~/.claude/agents/`(跨项目共享);本项目已锁定的契约/决策/复审记录见 `.claude/agent-memory/<角色>/`,子代理动手前应先读自己的目录。
 
 ## 5. 必须遵守的关卡 (gates)
-0. **PRD 评审先行**:产品给的 PRD 初稿先经 `prd-review` skill 做逻辑闭环体检;`docs/requirements/待澄清问题清单.md` 存在 🔴 阻塞项未闭环时,**不许进入 `requirements-analyst`**。阻塞项全部闭环、产出"确认基线"后方可拆需求。
+0. **PRD 评审先行**:产品给的 PRD 初稿先经 `prd-review` skill 做逻辑闭环体检;`docs/requirements/待澄清问题清单.md` 存在 🔴 阻塞项未闭环时,**不许进入 `requirements-analyst`**。阻塞项全部闭环、产出"确认基线"后方可拆需求。**当前权威口径为 `docs/requirements/第四轮澄清-MVP重定基线.md`,它覆盖前三轮全部结论;与旧文档冲突处一律以它为准。**
 1. **契约先行**:任何跨模块或对外部系统的改动,先让 `architect` 在 `docs/design/` 确认接口契约(模块间**门面接口** / 外部 **Feign 接口**)与 `common` 包 DTO;契约没定,不许写实现。
 2. **验收标准可验证**:需求里每条验收标准都要能判真假,它就是后面的测试用例和验收清单。
-2b. **一致性扫描**:需求/设计**定稿前**或任一决策口径变更后,按 `docs/templates/consistency-scan-template.md` 做一次关键词残留扫描(机械对照,不靠通读),把发现回填 `docs/requirements/需求审查遗留问题.md`。跨文档口径漂移靠通读几乎必残留。
+   2b. **一致性扫描**:需求/设计**定稿前**或任一决策口径变更后,按 `docs/templates/consistency-scan-template.md` 做一次关键词残留扫描(机械对照,不靠通读),把发现回填 `docs/requirements/需求审查遗留问题.md`。跨文档口径漂移靠通读几乎必残留。
+   > **本轮(第四轮)必扫关键词**:`强校验` `CV-1` `区域` `自动平衡` `锁定` `三档` `保守` `挑战` `置信度` `推荐区间` `AgentScope` `LLM` `Agent` `复盘` `回流` `TECNO` `Dealer` `SI` `ST` `forecast` `AI 目标管理平台`。以上在一期均已作废或收窄,出现即需核对。
 3. **提交前必过审查**:涉及鉴权、支付、用户数据、跨模块/外部系统接口、权限控制的改动,提交前必须经 `code-reviewer`。
 4. **成本意识**:并行(Agent Teams)约 15× token,子代理约 4–7×。包间/服务间耦合紧的工作默认串行;若工作天然独立(不同模块/服务、互不依赖),可考虑并行。
 
