@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>目标&达成管理平台 · MVP 演示（孟加拉 Infinix）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root{
+    --primary:#1677ff; --primary-dark:#0958d9; --primary-bg:#e6f4ff;
+    --green:#52c41a; --green-bg:#f6ffed; --gold:#faad14; --gold-bg:#fffbe6;
+    --red:#ff4d4f; --red-bg:#fff2f0; --text:#1f1f1f; --text-2:#595959;
+    --text-3:#8c8c8c; --border:#f0f0f0; --border-2:#d9d9d9; --bg:#f5f7fa;
+    --radius:8px; --shadow:0 1px 2px rgba(0,0,0,.03),0 1px 6px -1px rgba(0,0,0,.04);
+  }
+  body{ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--text); font-size:14px; line-height:1.55; }
+  .app{ display:flex; min-height:100vh; }
+  /* 侧边栏 */
+  .sider{ width:230px; background:#001529; color:#fff; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  .logo{ padding:20px 18px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,.08); }
+  .logo .mark{ width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg,#1677ff,#52c41a); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; }
+  .logo .txt b{ font-size:15px; display:block; } .logo .txt span{ font-size:11px; color:#8c8c8c; }
+  .nav{ padding:10px 0; }
+  .nav-item{ padding:12px 20px; cursor:pointer; color:rgba(255,255,255,.72); display:flex; align-items:center; gap:12px; font-size:14px; border-left:3px solid transparent; transition:.15s; }
+  .nav-item:hover{ color:#fff; background:rgba(255,255,255,.06); }
+  .nav-item.active{ color:#fff; background:var(--primary); border-left-color:#fff; }
+  .nav-item .ico{ width:18px; text-align:center; }
+  .nav-group{ padding:14px 20px 6px; font-size:11px; color:#5a6a7a; letter-spacing:.5px; }
+  /* 主区 */
+  .main{ flex:1; display:flex; flex-direction:column; min-width:0; }
+  .topbar{ height:60px; background:#fff; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 24px; gap:16px; position:sticky; top:0; z-index:20; }
+  .topbar .crumb{ font-size:16px; font-weight:600; }
+  .topbar .spacer{ flex:1; }
+  .ctx{ display:flex; gap:8px; align-items:center; }
+  .ctx .pill{ background:var(--primary-bg); color:var(--primary-dark); padding:4px 12px; border-radius:20px; font-size:12px; font-weight:500; }
+  .user{ display:flex; align-items:center; gap:8px; color:var(--text-2); }
+  .avatar{ width:32px; height:32px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .content{ padding:22px 24px; flex:1; }
+  .page{ display:none; } .page.active{ display:block; animation:fade .25s; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+  /* 通用组件 */
+  .card{ background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 20px; margin-bottom:18px; }
+  .card-title{ font-size:15px; font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+  .card-sub{ font-size:12px; color:var(--text-3); margin-bottom:14px; }
+  .row{ display:flex; gap:16px; flex-wrap:wrap; }
+  .kpi{ flex:1; min-width:180px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 20px; }
+  .kpi .label{ font-size:13px; color:var(--text-3); margin-bottom:8px; }
+  .kpi .val{ font-size:26px; font-weight:700; letter-spacing:-.5px; }
+  .kpi .val small{ font-size:14px; font-weight:500; color:var(--text-3); }
+  .kpi .foot{ font-size:12px; margin-top:6px; color:var(--text-3); }
+  .up{ color:var(--green); } .down{ color:var(--red); }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th,td{ padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+  th{ background:#fafafa; color:var(--text-2); font-weight:600; font-size:12px; }
+  tbody tr:hover{ background:#fafcff; }
+  td.num,th.num{ text-align:right; font-variant-numeric:tabular-nums; }
+  .tag{ display:inline-block; padding:1px 8px; border-radius:4px; font-size:12px; line-height:1.6; border:1px solid transparent; }
+  .tag-blue{ background:var(--primary-bg); color:var(--primary-dark); border-color:#91caff; }
+  .tag-green{ background:var(--green-bg); color:#389e0d; border-color:#b7eb8f; }
+  .tag-gold{ background:var(--gold-bg); color:#d48806; border-color:#ffe58f; }
+  .tag-red{ background:var(--red-bg); color:#cf1322; border-color:#ffccc7; }
+  .tag-gray{ background:#fafafa; color:var(--text-2); border-color:#d9d9d9; }
+  .dot{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; }
+  .dot-green{ background:var(--green);} .dot-gold{ background:var(--gold);} .dot-red{ background:var(--red);}
+  .btn{ border:1px solid var(--border-2); background:#fff; color:var(--text); padding:6px 16px; border-radius:6px; cursor:pointer; font-size:14px; transition:.15s; }
+  .btn:hover{ color:var(--primary); border-color:var(--primary); }
+  .btn-primary{ background:var(--primary); color:#fff; border-color:var(--primary); }
+  .btn-primary:hover{ background:var(--primary-dark); color:#fff; }
+  .btn-sm{ padding:3px 10px; font-size:12px; }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .toolbar{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+  .toolbar .spacer{ flex:1; }
+  .formula{ background:#0d1117; color:#c9d1d9; border-radius:6px; padding:14px 16px; font-family:"SFMono-Regular",Consolas,monospace; font-size:13px; line-height:1.9; overflow-x:auto; }
+  .formula .k{ color:#79c0ff; } .formula .n{ color:#ffa657; } .formula .c{ color:#8b949e; }
+  .factor-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .factor{ border:1px solid var(--border); border-radius:6px; padding:12px 14px; }
+  .factor .ft{ font-size:12px; color:var(--text-3); margin-bottom:4px; }
+  .factor .fv{ font-weight:600; }
+  .progress{ height:8px; background:#f0f0f0; border-radius:10px; overflow:hidden; min-width:90px; }
+  .progress .bar{ height:100%; border-radius:10px; }
+  .banner{ padding:10px 14px; border-radius:6px; font-size:13px; margin-bottom:14px; display:flex; gap:10px; align-items:flex-start; }
+  .banner-info{ background:var(--primary-bg); border:1px solid #91caff; color:var(--primary-dark); }
+  .banner-warn{ background:var(--gold-bg); border:1px solid #ffe58f; color:#d48806; }
+  .banner-success{ background:var(--green-bg); border:1px solid #b7eb8f; color:#389e0d; }
+  .steps{ display:flex; gap:0; margin-bottom:8px; }
+  .step{ flex:1; text-align:center; position:relative; font-size:12px; color:var(--text-3); }
+  .step .circle{ width:26px; height:26px; border-radius:50%; background:#f0f0f0; color:var(--text-3); display:inline-flex; align-items:center; justify-content:center; margin-bottom:6px; font-weight:600; }
+  .step.done .circle{ background:var(--green); color:#fff; } .step.done{ color:var(--green); }
+  .step.active .circle{ background:var(--primary); color:#fff; } .step.active{ color:var(--primary); font-weight:600; }
+  .step:not(:last-child):after{ content:""; position:absolute; top:13px; left:60%; width:80%; height:2px; background:#f0f0f0; z-index:-1; }
+  .step.done:not(:last-child):after{ background:var(--green); }
+  /* 弹窗 */
+  .mask{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:100; }
+  .mask.show{ display:flex; }
+  .modal{ background:#fff; border-radius:10px; width:520px; max-width:92vw; padding:24px; box-shadow:0 6px 24px rgba(0,0,0,.2); }
+  .modal h3{ font-size:17px; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+  .modal .mbody{ color:var(--text-2); font-size:13px; margin:12px 0 20px; }
+  .modal .mfoot{ display:flex; justify-content:flex-end; gap:10px; }
+  .gap-box{ background:var(--gold-bg); border:1px solid #ffe58f; border-radius:6px; padding:12px 14px; margin:12px 0; }
+  .gap-box .g-row{ display:flex; justify-content:space-between; padding:3px 0; }
+  .gap-box .g-row b{ color:#d48806; }
+  .timeline{ list-style:none; }
+  .timeline li{ position:relative; padding:0 0 22px 26px; }
+  .timeline li:before{ content:""; position:absolute; left:6px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--primary); }
+  .timeline li:after{ content:""; position:absolute; left:10px; top:14px; bottom:-4px; width:2px; background:var(--border); }
+  .timeline li:last-child:after{ display:none; }
+  .timeline li.pending:before{ background:var(--border-2); }
+  .timeline li .tl-t{ font-weight:600; } .timeline li .tl-d{ font-size:12px; color:var(--text-3); }
+  .split-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .mini-legend{ display:flex; gap:16px; font-size:12px; color:var(--text-2); margin-bottom:12px; }
+  .note{ font-size:12px; color:var(--text-3); margin-top:8px; }
+  .bar-chart{ display:flex; align-items:flex-end; gap:8px; height:150px; padding-top:10px; }
+  .bar-chart .b{ flex:1; background:linear-gradient(180deg,#69b1ff,#1677ff); border-radius:4px 4px 0 0; position:relative; min-height:2px; }
+  .bar-chart .b span{ position:absolute; top:-18px; left:0; right:0; text-align:center; font-size:11px; color:var(--text-2); }
+  .bar-chart .b em{ position:absolute; bottom:-20px; left:0; right:0; text-align:center; font-size:11px; color:var(--text-3); font-style:normal; }
+  .chart-wrap{ padding-bottom:24px; }
+  .badge-cnt{ background:var(--red); color:#fff; border-radius:10px; padding:0 6px; font-size:11px; margin-left:6px; }
+  .demo-tip{ position:fixed; right:18px; bottom:18px; background:#001529; color:#fff; padding:10px 16px; border-radius:8px; font-size:12px; opacity:.92; max-width:300px; z-index:50; }
+  .demo-tip b{ color:#69b1ff; }
+  /* 可编辑控件 */
+  input.inp,select.inp{ border:1px solid var(--border-2); border-radius:5px; padding:5px 8px; font-size:13px; font-family:inherit; background:#fff; transition:.15s; }
+  input.cell{ border:1px solid transparent; border-radius:5px; padding:4px 8px; font-size:13px; font-family:inherit; width:76px; text-align:right; font-variant-numeric:tabular-nums; background:#f6f9ff; font-weight:600; }
+  input.cell:hover{ border-color:#91caff; }
+  input.inp:focus,select.inp:focus,input.cell:focus{ border-color:var(--primary); outline:none; box-shadow:0 0 0 2px var(--primary-bg); background:#fff; }
+  textarea.inp{ width:100%; resize:vertical; min-height:56px; line-height:1.6; }
+  .edit-hint{ font-size:11px; color:var(--primary); background:var(--primary-bg); border:1px solid #91caff; padding:1px 8px; border-radius:10px; font-weight:500; }
+  .param-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  .param{ display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--border); border-radius:6px; padding:10px 14px; }
+  .param label{ font-size:13px; color:var(--text-2); }
+  .param .u{ color:var(--text-3); font-size:12px; margin-left:4px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sider">
+    <div class="logo">
+      <div class="mark">目</div>
+      <div class="txt"><b>目标&达成管理</b><span>MVP · 孟加拉试点</span></div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-group">目标经营</div>
+      <div class="nav-item active" data-page="overview"><span class="ico">▤</span>经营概览</div>
+      <div class="nav-item" data-page="total"><span class="ico">◈</span>总目标测算</div>
+      <div class="nav-item" data-page="person"><span class="ico">◇</span>人员目标拆解</div>
+      <div class="nav-item" data-page="approval"><span class="ico">✓</span>目标审批</div>
+      <div class="nav-group">执行监控</div>
+      <div class="nav-item" data-page="tracking"><span class="ico">◱</span>执行追踪与预警</div>
+      <div class="nav-item" data-page="rule"><span class="ico">⚙</span>国家规则包配置</div>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb" id="crumb">经营概览</div>
+      <div class="spacer"></div>
+      <div class="ctx">
+        <span class="pill">🇧🇩 孟加拉</span>
+        <span class="pill">品牌 Infinix</span>
+        <span class="pill">类型 销量</span>
+        <span class="pill">周期 2026-08</span>
+      </div>
+      <div class="user"><span class="avatar">RM</span>零售经理 · Rezaul</div>
+    </div>
+    <div class="content" id="content">
+      <div class="page active" id="page-overview"></div>
+      <div class="page" id="page-total"></div>
+      <div class="page" id="page-person"></div>
+      <div class="page" id="page-approval"></div>
+      <div class="page" id="page-tracking"></div>
+      <div class="page" id="page-rule"></div>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask"><div class="modal" id="modal"></div></div>
+<div class="demo-tip">💡 <b>可编辑演示原型</b>：带浅蓝底的数字/输入框均可直接修改，改动即实时联动。数据为孟加拉 Infinix 模拟值。</div>
+
+<script>
+/* ============================================================
+   模拟数据（孟加拉 Infinix · SO · 2026-08）—— 均为可变状态
+   业务口径来源：docs/requirements/目标测算与拆解.md、执行追踪与预警.md
+============================================================ */
+const CTX = { country:"孟加拉", brand:"Infinix", type:"销量", period:"2026-08", days:31 };
+
+/* —— 总目标测算：公式 F_ACT_DAILY = 上月日均激活 × 本月天数 × 去年同期增长幅度 —— */
+const TOTAL = {
+  formula: "日均激活测算法",
+  dailyActivation: 1850,      // 上月(7月)日均激活【可编辑】
+  monthDays: 31,              // 本月(8月)自然日
+  yoyGrowth: 1.12,            // 去年同期增长幅度 +12%（历史趋势，描述性）【可编辑】
+  upliftFactor: 1.15,         // 激励涨幅因子（在预测值之上人为拔高冲刺目标，默认1.15）【可编辑】
+  dataLevel: "PARTIAL",       // FULL / PARTIAL / LIMITED
+  get forecastValue(){ return Math.ceil(this.dailyActivation * this.monthDays * this.yoyGrowth); }, // 历史数据测算（预测）值
+  get baseValue(){ return Math.ceil(this.forecastValue * this.upliftFactor); },                     // 叠加激励涨幅后的基准目标值
+  adjustedValue: 75000,       // 人工微调后【可编辑】
+  adjustReason: "历史测算 64,233 × 激励涨幅 1.15 = 73,868；再叠加 8 月排灯节促销与新品 HOT 50 Pro 铺货，人工微调至 75,000"
+};
+const FACTORS = [
+  { name:"当月促销活动", val:"排灯节促销 8/1–8/15，覆盖 HOT/NOTE 系列", src:"DCR" },
+  { name:"库存周转天数", val:"38 天（偏高，清尾压力）", src:"大数据" },
+  { name:"清尾机型库存", val:"SMART 7 停产 · 账面 4,200 台", src:"大数据" },
+  { name:"工厂产能", val:"—（一期无数据源）", src:"—" },
+  { name:"季节系数", val:"去年 8 月 +6%", src:"DCR" },
+  { name:"调价方向", val:"HOT 50 降价 → 建议调高", src:"人工录入" },
+];
+// 机型维度分解（90%+ 到机型，Others 归集，平板/重点单列，ROUNDUP）；alloc 可编辑
+const MODELS = [
+  { code:"HOT 50",       daily:210, alloc:14200, key:false, hsp:false, tablet:false, stock:null },
+  { code:"HOT 50 Pro",   daily:180, alloc:12800, key:true,  hsp:true,  tablet:false, stock:null },
+  { code:"NOTE 40",      daily:165, alloc:11000, key:false, hsp:false, tablet:false, stock:null },
+  { code:"NOTE 40 Pro",  daily:120, alloc:9200,  key:true,  hsp:true,  tablet:false, stock:null },
+  { code:"SMART 9",      daily:190, alloc:9800,  key:false, hsp:false, tablet:false, stock:null },
+  { code:"GT 20 Pro",    daily:45,  alloc:3600,  key:true,  hsp:true,  tablet:false, stock:null },
+  { code:"ZERO 30",      daily:22,  alloc:1800,  key:true,  hsp:true,  tablet:false, stock:null },
+  { code:"XPAD 10",      daily:8,   alloc:900,   key:true,  hsp:false, tablet:true,  stock:1400 },
+  { code:"SMART 7（清尾）", daily:6, alloc:1200, key:false, hsp:false, tablet:false, stock:4200, discount:0.85 },
+  { code:"其他（清货老品归集）", daily:5, alloc:500, key:false, hsp:false, tablet:false, others:true, stock:null },
+];
+
+/* —— 人员目标拆解：孟加拉系数法 BD_COEFFICIENT_V1 —— */
+const ALGO = { coverageRatio:0.90, minPerPerson:40, hspMode:"BY_MODEL", stockDiscount:0.85, softCheckRatio:0.90 };
+const SIGMA_BASE = 54167;   // 全量 200 名 BP 基础值合计（用于反推系数）
+// 拆解基数（待分配盘子 = 系数分子）：不硬绑总目标
+//   FROM_TOTAL = 来自总目标×90%（默认）；MANUAL = 有总目标但人工改基数；NO_TOTAL = 本月总目标未建，人员目标先行
+const ALLOC = {
+  mode: "FROM_TOTAL",
+  manualPool: 58500,        // 人工设定的待分配盘子（mode!=FROM_TOTAL 时生效）【可编辑】
+  get hasTotal(){ return this.mode!=='NO_TOTAL'; },          // 是否已建总目标（决定 E-7 能否校验）
+  get pool(){ return this.mode==='FROM_TOTAL' ? Math.round(TOTAL.adjustedValue*ALGO.coverageRatio) : this.manualPool; }
+};
+let COEF = 1.08;            // 系数 = 拆解基数(ALLOC.pool) ÷ Σbase(200 BP)
+function recalcCoef(){ COEF = +((ALLOC.pool)/SIGMA_BASE).toFixed(2); }
+// 中高端按机型：重点机型（HOT 50 Pro / NOTE 40 Pro / GT 20 Pro / ZERO 30）各自单列填报
+const HSP_MODELS = MODELS.filter(m=>m.hsp).map(m=>m.code);
+const H = (a,b,c,d)=>({[HSP_MODELS[0]]:a,[HSP_MODELS[1]]:b,[HSP_MODELS[2]]:c,[HSP_MODELS[3]]:d});
+const hspTotal = bp => HSP_MODELS.reduce((s,m)=>s+(bp.hsp[m]||0),0);
+// 「按总量」时把合计按国家级机型配额比例回分到各重点机型
+function distributeHsp(bp,total){ const w=HSP_MODELS.map(m=>MODELS.find(x=>x.code===m).alloc); const ws=w.reduce((a,b)=>a+b,0); let used=0; HSP_MODELS.forEach((m,i)=>{ bp.hsp[m]= i===HSP_MODELS.length-1 ? total-used : Math.round(total*w[i]/ws); used+=bp.hsp[m]; }); }
+// 样例 BP（实际 200 名，此处展示 12 名代表）；so/中高端 可编辑覆盖
+const BPS = [
+  { id:"BP001", name:"Rahim Uddin",    store:"Dhaka-Gulshan",     base:62, hsp:H(7,4,2,1),   flags:[] },
+  { id:"BP002", name:"Karim Hossain",  store:"Dhaka-Mirpur",      base:48, hsp:H(4,3,1,1),   flags:[] },
+  { id:"BP003", name:"Sultana Begum",  store:"Chittagong-Agrabad",base:35, hsp:H(2,2,1,0),   flags:[] },
+  { id:"BP004", name:"Jamal Ahmed",    store:"Dhaka-Uttara",      base:90, hsp:H(10,7,3,2),  flags:[] },
+  { id:"BP005", name:"Nasrin Akter",   store:"Sylhet-Zindabazar", base:16, hsp:H(1,1,0,0),   flags:["R2"] },
+  { id:"BP006", name:"Farhan Kabir",   store:"Khulna-Sonadanga",  base:null, hsp:H(0,0,0,0), flags:["HISTORY_MISSING"] },
+  { id:"BP007", name:"Tanvir Islam",   store:"Dhaka-Dhanmondi",   base:55, hsp:H(6,4,1,1),   flags:["STORE_TRANSFER"], storeAvg:50 },
+  { id:"BP008", name:"Ayesha Siddiqua",store:"Chittagong-GEC",    base:42, hsp:H(4,2,1,1),   flags:[] },
+  { id:"BP009", name:"Mizanur Rahman", store:"Rajshahi-Shaheb",   base:33, hsp:H(2,1,1,0),   flags:[] },
+  { id:"BP010", name:"Shakil Hasan",   store:"Dhaka-Bashundhara", base:120,hsp:H(14,10,4,2), flags:[] },
+  { id:"BP011", name:"Rubel Mia",      store:"Barisal-Sadar",     base:24, hsp:H(1,1,1,0),   flags:[] },
+  { id:"BP012", name:"Nadia Sultana",  store:"Comilla-Kandirpar", base:70, hsp:H(7,5,3,1),   flags:["R1"], manual:150 },
+];
+// 提示性校验：其余 188 人目标合计随系数 COEF 等比缩放，样例 12 人实时求和 → 全量合计实时联动
+// 默认落在 ~88%，故意略低于 90% 线以展示 E-7 提示性校验（纯系数法本应≥90%，缺口来自人工下调/保底/减员）
+const OTHERS_BASE = 52100;   // 188 名 BP 基础值合计（随 COEF 缩放，避免总目标变化后占比失真）
+const SOFT = {
+  get othersSum(){ return Math.round(OTHERS_BASE * COEF); },
+  get personSum(){ return this.othersSum + BPS.reduce((s,bp)=>s+calcTarget(bp).val,0); },
+  get hasCheck(){ return ALLOC.hasTotal; },   // 无总目标时不做 90% 校验
+  get threshold(){ return ALLOC.hasTotal ? Math.round(TOTAL.adjustedValue*ALGO.softCheckRatio) : null; },
+  get gap(){ return ALLOC.hasTotal ? this.threshold - this.personSum : 0; },
+  get ratio(){ return ALLOC.hasTotal ? this.personSum/TOTAL.adjustedValue : null; } };
+
+/* —— 调整版本记录（总目标 / 人员目标；调整即留痕，一期不走审批流） —— */
+function nowStamp(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+const TOTAL_VERSIONS = [
+  { ver:1, time:"2026-07-28 09:40", user:"Rezaul（品牌经理）", value:65000, reason:"首次定版：日均激活测算 × 常规增长，未叠加大促" },
+  { ver:2, time:"2026-07-30 15:20", user:"Rezaul（品牌经理）", value:75000, reason:"叠加 8 月排灯节促销与新品 HOT 50 Pro 铺货，人工上调 1 万台" },
+];
+const PERSON_VERSIONS = [
+  { ver:1, time:"2026-07-31 10:12", user:"系统", sum:65936, changed:0, reason:"系数法首次生成（覆盖率 90%，向上取整、保底 40 台）" },
+  { ver:2, time:"2026-07-31 10:40", user:"Rezaul（品牌经理）", sum:65998, changed:1, reason:"对 Nadia Sultana（旗舰店）人工上调至 150 台" },
+];
+
+/* —— 目标审批（对接公司 BPM） —— */
+const APPROVAL = {
+  status:"IN_REVIEW",
+  processId:"BPM-BD-20260731-0426",
+  steps:[
+    { t:"人员目标生成（草稿）", d:"2026-07-31 10:12 · 系统 · 200 名促销员，系数 1.08", state:"done" },
+    { t:"预检 + 提示性校验", d:"2026-07-31 10:15 · Rezaul · 缺口 1,300（88.0%），选择「继续提交」", state:"done" },
+    { t:"提交公司审批系统", d:"2026-07-31 10:16 · Rezaul · 流程 BPM-BD-20260731-0426", state:"done" },
+    { t:"审批中（品牌经理）", d:"待品牌经理 Ashfaq 审批", state:"active" },
+    { t:"审批通过 → 发布生效 → 触发通知", d:"待完成", state:"pending" },
+  ]
+};
+
+/* —— 执行追踪：演示周期取进行中的 2026-07（7/23，时间进度≈74%） —— */
+const TRACK = {
+  period:"2026-07", daysPassed:23, daysTotal:31, timeProgress:0.742,
+  cfg:{ ratioThreshold:0.30, zeroSalesDays:3, timeFloor:0.10 },
+  // 总目标口径达成（国家级 SO，独立于人员目标；分母=当期国家总目标，非 Σ人员目标）
+  nation:{ target:62000, actual:41800 },
+  rows:[
+    { id:"BP001", name:"Rahim Uddin",    store:"Dhaka-Gulshan",     tgt:67, act:55, zero:0 },
+    { id:"BP002", name:"Karim Hossain",  store:"Dhaka-Mirpur",      tgt:52, act:30, zero:0 },
+    { id:"BP003", name:"Sultana Begum",  store:"Chittagong-Agrabad",tgt:40, act:13, zero:0 },
+    { id:"BP004", name:"Jamal Ahmed",    store:"Dhaka-Uttara",      tgt:98, act:88, zero:0 },
+    { id:"BP005", name:"Nasrin Akter",   store:"Sylhet-Zindabazar", tgt:40, act:6,  zero:0 },
+    { id:"BP006", name:"Farhan Kabir",   store:"Khulna-Sonadanga",  tgt:40, act:0,  zero:5 },
+    { id:"BP007", name:"Tanvir Islam",   store:"Dhaka-Dhanmondi",   tgt:60, act:46, zero:0 },
+    { id:"BP008", name:"Ayesha Siddiqua",store:"Chittagong-GEC",    tgt:46, act:20, zero:0 },
+    { id:"BP009", name:"Mizanur Rahman", store:"Rajshahi-Shaheb",   tgt:40, act:8,  zero:0 },
+    { id:"BP010", name:"Shakil Hasan",   store:"Dhaka-Bashundhara", tgt:130,act:120,zero:0 },
+    { id:"BP011", name:"Rubel Mia",      store:"Barisal-Sadar",     tgt:40, act:0,  zero:4 },
+    { id:"BP012", name:"Nadia Sultana",  store:"Comilla-Kandirpar", tgt:76, act:50, zero:0 },
+  ]
+};
+
+/* ============ 工具函数 ============ */
+const fmt = n => (n==null?"—":Number(n).toLocaleString("en-US"));
+const pct = n => (n==null?"—":(n*100).toFixed(1) + "%");
+// 人员目标计算：优先手动覆盖(so)→原始人工调整(manual)→系数法(base×COEF, ROUNDUP, min40, 换店取小)
+function calcTarget(bp){
+  if(bp.so!=null) return { val:bp.so, base:bp.base, floored:false, manual:true };
+  if(bp.manual)  return { val:bp.manual, base:bp.base, floored:false, manual:true };
+  let base = bp.base;
+  if(base==null) return { val:ALGO.minPerPerson, base:null, floored:true };
+  if(bp.flags.includes("STORE_TRANSFER") && bp.storeAvg!=null) base = Math.min(base, bp.storeAvg);
+  const raw = Math.ceil(base*COEF);
+  const val = Math.max(raw, ALGO.minPerPerson);
+  return { val, base, raw, floored: val>raw };
+}
+function trackStatus(r){
+  if(r.tgt===0) return {color:"gray", rate:null, label:"—", gap:0};
+  const rate = r.act/r.tgt;
+  const tp = TRACK.timeProgress;
+  let color = rate>=tp ? "green" : (rate>=tp*TRACK.cfg.ratioThreshold ? "gold":"red");
+  return { color, rate, gap: Math.max(r.tgt-r.act,0) };
+}
+function getAlerts(){
+  const a=[]; const tp=TRACK.timeProgress;
+  TRACK.rows.forEach(r=>{
+    const rate = r.tgt? r.act/r.tgt : null;
+    if(rate!=null && tp>=TRACK.cfg.timeFloor && rate < tp*TRACK.cfg.ratioThreshold)
+      a.push({type:"LOW_ACHIEVEMENT", name:r.name, store:r.store, metric:"销量总量", detail:`达成率 ${pct(rate)} < 时间进度×30%(${pct(tp*TRACK.cfg.ratioThreshold)})`});
+    if(r.zero>=TRACK.cfg.zeroSalesDays)
+      a.push({type:"ZERO_SALES", name:r.name, store:r.store, metric:"销量总量", detail:`连续 ${r.zero} 天 0 销量（阈值 ${TRACK.cfg.zeroSalesDays} 天）`});
+  });
+  return a;
+}
+const COLOR={green:"tag-green",gold:"tag-gold",red:"tag-red",gray:"tag-gray"};
+const COLORTXT={green:"绿 · 正常",gold:"黄 · 落后",red:"红 · 预警",gray:"—"};
+
+/* ============ 页面渲染 ============ */
+function renderOverview(){
+  const alerts=getAlerts();
+  // 人员目标达成：分母=Σ人员目标（样例 12 人）；与总目标达成分开统计
+  const actSum=TRACK.rows.reduce((s,r)=>s+r.act,0), tgtSum=TRACK.rows.reduce((s,r)=>s+r.tgt,0);
+  const personRate=actSum/tgtSum;                       // 人员目标达成率
+  const nationRate=TRACK.nation.actual/TRACK.nation.target; // 总目标（国家级）达成率
+  const cnt={green:0,gold:0,red:0};
+  TRACK.rows.forEach(r=>{const s=trackStatus(r); if(cnt[s.color]!=null)cnt[s.color]++;});
+  return `
+  <div class="row">
+    <div class="kpi"><div class="label">国家总目标（销量）</div><div class="val">${fmt(TOTAL.adjustedValue)} <small>台</small></div><div class="foot"><span class="tag tag-green">已生效</span> 公式测算 + 人工微调</div></div>
+    <div class="kpi"><div class="label">人员目标合计（销量）</div><div class="val">${fmt(SOFT.personSum)} <small>台</small></div><div class="foot ${!SOFT.hasCheck?'':(SOFT.ratio<0.9?'down':'up')}">${!SOFT.hasCheck?'总目标未建·暂不校验':`占总目标 ${pct(SOFT.ratio)}${SOFT.ratio<0.9?'（＜90%，已提示）':'（已达标）'}`}</div></div>
+    <div class="kpi"><div class="label">在职促销员</div><div class="val">200 <small>人</small></div><div class="foot">系数 ${COEF} · 保底 ${ALGO.minPerPerson} 台</div></div>
+  </div>
+  <div class="row">
+    <div class="kpi"><div class="label">总目标达成率 <span class="tag tag-blue">国家级</span></div><div class="val">${pct(nationRate)}</div><div class="foot">分母 = 国家总目标 ${fmt(TRACK.nation.target)} · 已达 ${fmt(TRACK.nation.actual)} 台<br>时间进度 ${pct(TRACK.timeProgress)}（${TRACK.daysPassed}/${TRACK.daysTotal} 天）</div></div>
+    <div class="kpi"><div class="label">人员目标达成率 <span class="tag tag-gold">人员级</span></div><div class="val">${pct(personRate)}</div><div class="foot">分母 = Σ人员目标（样例 12 人 ${fmt(tgtSum)}）· 已达 ${fmt(actSum)} 台<br><span class="tag tag-gray">与总目标达成分分母独立计算</span></div></div>
+    <div class="kpi"><div class="label">活跃预警</div><div class="val down">${alerts.length}</div><div class="foot">达成预警 ${alerts.filter(a=>a.type=="LOW_ACHIEVEMENT").length} · 0 销量 ${alerts.filter(a=>a.type=="ZERO_SALES").length}（均基于人员目标）</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">达成状态分布　<span class="tag tag-gold">人员目标口径</span></div>
+    <div class="card-sub">统计对象：样例 12 名 BP 的个人 SO 达成状态（非国家总目标）· 7 月进行中 · 时间进度 ${pct(TRACK.timeProgress)}。总目标达成另行按国家级口径统计。</div>
+    <div class="mini-legend"><span><span class="dot dot-green"></span>绿 ${cnt.green}（达成率≥时间进度）</span><span><span class="dot dot-gold"></span>黄 ${cnt.gold}（落后·不推送）</span><span><span class="dot dot-red"></span>红 ${cnt.red}（预警·推送）</span></div>
+    <div class="progress" style="height:22px;display:flex">
+      <div class="bar" style="background:var(--green);width:${cnt.green/12*100}%"></div>
+      <div class="bar" style="background:var(--gold);width:${cnt.gold/12*100}%"></div>
+      <div class="bar" style="background:var(--red);width:${cnt.red/12*100}%"></div>
+    </div>
+    <div class="note">红色对象已触发达成预警，可在「执行追踪与预警」页查看并处理（预警基于人员目标）。</div>
+  </div>`;
+}
+
+function renderTotal(){
+  const dataTag = {FULL:["tag-green","数据完整"],PARTIAL:["tag-gold","数据部分可用"],LIMITED:["tag-red","数据不足"]}[TOTAL.dataLevel];
+  const covered=MODELS.filter(m=>!m.others).reduce((s,m)=>s+m.alloc,0);
+  const totalAlloc=MODELS.reduce((s,m)=>s+m.alloc,0);
+  const coverRate=covered/totalAlloc;
+  return `
+  <div class="banner banner-${TOTAL.dataLevel==='FULL'?'success':(TOTAL.dataLevel==='LIMITED'?'warn':'info')}">
+    <span>ⓘ</span><div>基准数据可用性：<b>${dataTag[1]}</b>。测算结果按公式给出，缺失指标已标注；数据不足时不呈现伪精确结果，允许人工直接设定。</div>
+  </div>
+  <div class="split-2">
+    <div class="card">
+      <div class="card-title">① 基准值测算　<span class="tag ${dataTag[0]}">${dataTag[1]}</span>　<span class="edit-hint">可改因子</span></div>
+      <div class="card-sub">规则包公式 ${TOTAL.formula}：（上月日均激活 × 本月天数 × 去年同期增长幅度）× 激励涨幅因子</div>
+      <div class="formula"><span class="c">// 修改下方因子，基准值自动重算</span>
+上月日均激活 = <input class="cell" style="width:70px" value="${TOTAL.dailyActivation}" onchange="onTotal('dailyActivation',this.value)"> <span class="c">台/日（大数据·2026-07）</span>
+本月天数     = <span class="n">${TOTAL.monthDays}</span> <span class="c">天（2026-08）</span>
+去年同期增幅 = <input class="cell" style="width:58px" value="${TOTAL.yoyGrowth}" onchange="onTotal('yoyGrowth',this.value)"> <span class="c">（DCR·2025-08 同比，历史趋势）</span>
+<span class="c">// ① 历史数据测算（预测）值</span>
+历史测算值   = ${fmt(TOTAL.dailyActivation)} × ${TOTAL.monthDays} × ${TOTAL.yoyGrowth} = <span class="n">${fmt(TOTAL.forecastValue)}</span> 台（向上取整）
+<span class="c">// ② 叠加激励涨幅因子（人为拔高，冲刺高于自然增长）</span>
+激励涨幅因子 = <input class="cell" style="width:58px" value="${TOTAL.upliftFactor}" onchange="onTotal('upliftFactor',this.value)"> <span class="c">（默认 1.15，可按国家/月份调）</span>
+<span class="k">基准目标值</span> = ${fmt(TOTAL.forecastValue)} × ${TOTAL.upliftFactor}
+       = <span class="n">${fmt(TOTAL.baseValue)}</span> 台（向上取整）</div>
+    </div>
+    <div class="card">
+      <div class="card-title">② 人工微调　<span class="edit-hint">可改</span></div>
+      <div class="card-sub">微调因子仅作提示，不进自动计算；调整需填原因（≥10 字）</div>
+      <div class="row" style="margin-bottom:12px">
+        <div class="kpi" style="box-shadow:none;border:1px solid var(--border);padding:12px 16px"><div class="label">公式基准值</div><div class="val" style="font-size:20px">${fmt(TOTAL.baseValue)}</div></div>
+        <div class="kpi" style="box-shadow:none;border:1px solid var(--primary);padding:12px 16px;background:var(--primary-bg)"><div class="label">人工微调后总目标</div><div><input class="cell" style="width:110px;font-size:20px;background:#fff" value="${TOTAL.adjustedValue}" onchange="onTotal('adjustedValue',this.value)"></div></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-2);margin-bottom:4px">调整原因：</div>
+      <textarea class="inp" onchange="TOTAL.adjustReason=this.value">${TOTAL.adjustReason}</textarea>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">微调因子提示（6 项）</div>
+    <div class="factor-grid">
+      ${FACTORS.map(f=>`<div class="factor"><div class="ft">${f.name} · <span style="color:var(--text-3)">${f.src}</span></div><div class="fv">${f.val}</div></div>`).join("")}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">③ 机型维度分解　<span class="tag ${coverRate>=0.9?'tag-green':'tag-red'}">覆盖率 ${pct(coverRate)}</span>　<span class="edit-hint">分配目标可改</span></div>
+    <div class="card-sub">90%+ 拆到机型；日激活＜10 台清货老品归「其他」；平板/中高端重点机型强制单列；停产清尾按可信库存折算；向上取整。合计 ${fmt(totalAlloc)} 台。</div>
+    <table>
+      <thead><tr><th>机型</th><th class="num">日均激活</th><th class="num">分配目标</th><th class="num">账面库存</th><th class="num">可信库存(×0.85)</th><th>标记</th></tr></thead>
+      <tbody>${MODELS.map((m,i)=>{
+        const cred = m.stock!=null && m.discount ? Math.floor(m.stock*m.discount) : (m.stock!=null?m.stock:null);
+        const tags=[]; if(m.others)tags.push('<span class="tag tag-gray">其他归集</span>');
+        if(m.tablet)tags.push('<span class="tag tag-blue">平板·强制单列</span>');
+        if(m.hsp)tags.push('<span class="tag tag-gold">中高端</span>');
+        if(m.discount)tags.push('<span class="tag tag-red">停产清尾·折算</span>');
+        return `<tr><td>${m.code}</td><td class="num">${m.daily}</td><td class="num"><input class="cell" value="${m.alloc}" onchange="onModel(${i},this.value)"></td><td class="num">${m.stock!=null?fmt(m.stock):'—'}</td><td class="num">${cred!=null&&m.discount?fmt(cred):'—'}</td><td>${tags.join(' ')||'—'}</td></tr>`;
+      }).join("")}</tbody>
+    </table>
+    <div class="toolbar" style="margin-top:16px"><div class="spacer"></div><button class="btn">存草稿</button><button class="btn btn-primary" onclick="confirmTotal()">确认生效 · 记录版本</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">④ 调整记录（版本）　<span class="tag tag-gray">共 ${TOTAL_VERSIONS.length} 版</span></div>
+    <div class="card-sub">总目标制定后可调整，每次「确认生效」即留痕为一个版本；最新版本为当前生效值（一期调整不走审批流）。</div>
+    <table>
+      <thead><tr><th>版本</th><th>时间</th><th>操作人</th><th class="num">总目标(台)</th><th class="num">较上版</th><th>调整原因</th></tr></thead>
+      <tbody>${TOTAL_VERSIONS.map((v,i)=>{ const prev=i>0?TOTAL_VERSIONS[i-1].value:null; const d=prev==null?null:v.value-prev; const dtxt=d==null?'<span class="tag tag-blue">初始定版</span>':(d>0?`<span class="up">+${fmt(d)}</span>`:(d<0?`<span class="down">${fmt(d)}</span>`:'—')); const cur=i===TOTAL_VERSIONS.length-1; return `<tr><td>V${v.ver} ${cur?'<span class="tag tag-green">当前</span>':''}</td><td>${v.time}</td><td>${v.user}</td><td class="num">${fmt(v.value)}</td><td class="num">${dtxt}</td><td>${v.reason}</td></tr>`; }).join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderPerson(){
+  const rows=BPS.map(bp=>({bp,c:calcTarget(bp)}));
+  const alertBanner = !SOFT.hasCheck
+    ? `<div class="banner banner-info"><span>ⓘ</span><div><b>本月总目标尚未建立</b>　当前按<b>人工设定的拆解基数</b>先行拆解人员目标；（Σ人员 ≥ 总目标×90% 的提示性校验）待总目标建立后自动回填。</div></div>`
+    : SOFT.gap>0
+    ? `<div class="banner banner-warn"><span>⚠</span><div><b>提示：人员目标合计低于总目标 90%线</b>　Σ人员销量 <b>${fmt(SOFT.personSum)}</b> 台，仅达阈值 <b>${fmt(SOFT.threshold)}</b> 台的 <b>${pct(SOFT.ratio)}</b>，缺口 <b class="down">${fmt(SOFT.gap)}</b> 台。—— 仅提示，不阻断，经理可选择补目标或直接提交。</div></div>`
+    : `<div class="banner banner-success"><span>✓</span><div><b>人员目标合计已达总目标 90%线</b>　Σ人员销量 <b>${fmt(SOFT.personSum)}</b> 台（${pct(SOFT.ratio)}），无需提示，可直接提交审批。</div></div>`;
+  const poolFromTotal = ALLOC.mode==='FROM_TOTAL';
+  return `
+  ${alertBanner}
+  <div class="card">
+    <div class="card-title">孟加拉系数法</div>
+    <div class="card-sub">系数 = <b>拆解基数（待分配盘子）</b> ÷ Σ 有促门店促销员均销；促销员目标 = 基础值 × 系数（向上取整），下限 40 台；换店取较小值（个人均销 / 新店店均）</div>
+    <div class="param-grid" style="margin:12px 0 4px">
+      <div class="param"><label>拆解基数来源</label>
+        <select class="inp" onchange="onAllocMode(this.value)">
+          <option value="FROM_TOTAL" ${poolFromTotal?'selected':''}>来自总目标 × 90%（自动）</option>
+          <option value="MANUAL" ${ALLOC.mode==='MANUAL'?'selected':''}>有总目标，但人工改基数</option>
+          <option value="NO_TOTAL" ${ALLOC.mode==='NO_TOTAL'?'selected':''}>本月总目标未建，人工先行</option>
+        </select>
+      </div>
+      <div class="param"><label>拆解基数（待分配盘子，台）</label>
+        <input class="cell" style="width:110px" value="${ALLOC.pool}" ${poolFromTotal?'disabled title="来自总目标×90%；切到“人工改基数”或“未建”才可改"':''} onchange="onAllocPool(this.value)">
+      </div>
+    </div>
+    <div class="formula">拆解基数 = ${poolFromTotal?`总目标 <span class="n">${fmt(TOTAL.adjustedValue)}</span> × <span class="n">${ALGO.coverageRatio}</span>`:`<span class="n">${fmt(ALLOC.pool)}</span>（人工设定，不依赖总目标）`} = <span class="k">${fmt(ALLOC.pool)}</span> 台
+系数 = 拆解基数 <span class="n">${fmt(ALLOC.pool)}</span> ÷ Σ基础值(200 名促销员=<span class="n">${fmt(SIGMA_BASE)}</span>) = <span class="k">${COEF}</span>
+<span class="c">// 保底=${ALGO.minPerPerson} 台 · 中高端填报=${ALGO.hspMode==='BY_MODEL'?'按机型':'按总量'} · 提示性校验阈值=${ALGO.softCheckRatio}（在「规则包配置」页可改）</span></div>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <div class="card-title" style="margin:0">人员双目标（样例 12 / 共 200 名促销员）　<span class="edit-hint">销量 / 中高端 单元格可改</span></div>
+      <div class="spacer"></div>
+      <button class="btn btn-sm" onclick="batchEdit()">批量编辑</button>
+      <button class="btn btn-sm btn-primary" onclick="regenPerson()">重新生成（按系数法）</button>
+    </div>
+    <div class="mini-legend">
+      <span><span class="tag tag-blue">销量</span> 销量总目标（参与提示性校验）</span>
+      <span><span class="tag tag-gold">中高端</span> ${ALGO.hspMode==='BY_MODEL'?'中高端目标按 4 个重点机型分列填报（不参与校验）':'中高端目标按合计填报（不参与校验）'}</span>
+    </div>
+    <table>
+      <thead><tr><th>促销员</th><th>门店</th><th class="num">近3月均销</th><th class="num">销量目标</th>${ALGO.hspMode==='BY_MODEL'?HSP_MODELS.map(m=>`<th class="num">${m}</th>`).join(''):'<th class="num">中高端合计</th>'}<th>预检 / 标记</th></tr></thead>
+      <tbody>${rows.map(({bp,c})=>{
+        const flags=[];
+        if(c.floored && !c.manual) flags.push('<span class="tag tag-gold">已按保底值抬高</span>');
+        if(bp.flags.includes("STORE_TRANSFER")) flags.push('<span class="tag tag-blue">调店已按新店店均校准</span>');
+        if(bp.flags.includes("HISTORY_MISSING")) flags.push('<span class="tag tag-gray">历史缺失·按保底</span>');
+        if(bp.flags.includes("R1")) flags.push('<span class="tag tag-red">目标＞历史150%</span>');
+        if(bp.flags.includes("R2")) flags.push('<span class="tag tag-red">保底且历史&lt;20</span>');
+        if(bp.so!=null || bp.manual) flags.push('<span class="tag tag-gray">人工调整</span>');
+        return `<tr><td>${bp.name}<div style="font-size:11px;color:var(--text-3)">${bp.id}</div></td><td>${bp.store}</td><td class="num">${bp.base==null?'—':bp.base}</td><td class="num"><input class="cell" value="${c.val}" onchange="onBP('${bp.id}','so',this.value)"></td>${ALGO.hspMode==='BY_MODEL'?HSP_MODELS.map(m=>`<td class="num"><input class="cell" style="width:52px" value="${bp.hsp[m]||0}" onchange="onHspModel('${bp.id}','${m}',this.value)"></td>`).join(''):`<td class="num"><input class="cell" style="width:64px" value="${hspTotal(bp)}" onchange="onHspTotal('${bp.id}',this.value)"></td>`}<td>${flags.join(' ')||'<span class="tag tag-green">正常</span>'}</td></tr>`;
+      }).join("")}</tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">提示性校验（仅提示，不阻断提交）</div>
+    <div class="card-sub">校验：Σ 人员销量总目标 ≥ 总目标 × 90%（中高端不参与）— 改上表任一销量值即实时更新</div>
+    ${ !SOFT.hasCheck
+      ? `<div class="banner banner-info" style="margin:0"><span>ⓘ</span><div>本月总目标未建立，暂不做该项校验。当前 Σ人员销量 = <b>${fmt(SOFT.personSum)}</b> 台；待总目标建立后，系统按总目标×90% 自动回填校验结果。</div></div>`
+      : `<table><tbody>
+      <tr><td>Σ 人员销量目标（200 人）</td><td class="num"><b>${fmt(SOFT.personSum)}</b> 台</td></tr>
+      <tr><td>校验阈值（总目标 ${fmt(TOTAL.adjustedValue)} × 90%）</td><td class="num">${fmt(SOFT.threshold)} 台</td></tr>
+      <tr><td>差额 / 占比</td><td class="num">${SOFT.gap>0?`<span class="down">缺口 ${fmt(SOFT.gap)}（${pct(SOFT.ratio)}）</span>`:`<span class="up">已达标 ${pct(SOFT.ratio)}</span>`}</td></tr>
+    </tbody></table>`}
+    <div class="toolbar" style="margin-top:16px"><div class="spacer"></div><button class="btn">返回修改</button><button class="btn btn-primary" onclick="submitPerson()">提交审批</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">人员目标调整记录（版本）　<span class="tag tag-gray">共 ${PERSON_VERSIONS.length} 版</span></div>
+    <div class="card-sub">人员目标制定后可调整（改单元格 / 批量 / 重新生成），保存即留痕为一个版本；一期调整不走审批流。</div>
+    <table>
+      <thead><tr><th>版本</th><th>时间</th><th>操作人</th><th class="num">Σ人员销量(台)</th><th class="num">较上版</th><th class="num">人工调整数</th><th>说明</th></tr></thead>
+      <tbody>${PERSON_VERSIONS.map((v,i)=>{ const prev=i>0?PERSON_VERSIONS[i-1].sum:null; const d=prev==null?null:v.sum-prev; const dtxt=d==null?'<span class="tag tag-blue">初始生成</span>':(d>0?`<span class="up">+${fmt(d)}</span>`:(d<0?`<span class="down">${fmt(d)}</span>`:'—')); const cur=i===PERSON_VERSIONS.length-1; return `<tr><td>V${v.ver} ${cur?'<span class="tag tag-green">当前</span>':''}</td><td>${v.time}</td><td>${v.user}</td><td class="num">${fmt(v.sum)}</td><td class="num">${dtxt}</td><td class="num">${v.changed}</td><td>${v.reason}</td></tr>`; }).join('')}</tbody>
+    </table>
+    <div class="toolbar" style="margin-top:12px"><input class="inp" id="pvReason" style="width:440px" placeholder="填写本次调整原因（如：Dhaka 大区门店扩张，上调 8 名促销员目标）"><div class="spacer"></div><button class="btn btn-primary" onclick="savePersonVersion()">保存调整（记录新版本）</button></div>
+  </div>`;
+}
+
+function renderApproval(){
+  const st={DRAFT:["tag-gray","草稿"],SUBMITTED:["tag-blue","已提交"],IN_REVIEW:["tag-blue","审批中"],APPROVED:["tag-green","已通过"],REJECTED:["tag-red","已驳回"],SUSPENDED:["tag-gold","已挂起"]}[APPROVAL.status];
+  return `
+  <div class="banner banner-info"><span>ⓘ</span><div>人员目标审批接<b>公司审批系统（BPM）</b>；总目标不走审批、确认即生效。审批系统不可用时目标可挂起、不丢失。</div></div>
+  <div class="split-2">
+    <div class="card">
+      <div class="card-title">审批流程　<span class="tag ${st[0]}">${st[1]}</span></div>
+      <div class="card-sub">审批流程实例：${APPROVAL.processId}</div>
+      <ul class="timeline">${APPROVAL.steps.map(s=>`<li class="${s.state==='pending'?'pending':''}"><div class="tl-t">${s.t} ${s.state==='done'?'<span class="tag tag-green">✓</span>':(s.state==='active'?'<span class="tag tag-blue">进行中</span>':'')}</div><div class="tl-d">${s.d}</div></li>`).join("")}</ul>
+    </div>
+    <div class="card">
+      <div class="card-title">送审内容摘要</div>
+      <div class="card-sub">周期 ${CTX.period} · ${CTX.country} · ${CTX.brand} · ${CTX.type}</div>
+      <table><tbody>
+        <tr><td>促销员数量</td><td class="num">200 人</td></tr>
+        <tr><td>Σ 销量总目标</td><td class="num">${fmt(SOFT.personSum)} 台</td></tr>
+        <tr><td>提示性校验</td><td class="num">${!SOFT.hasCheck?`<span class="tag tag-blue">总目标未建·待回填</span>`:(SOFT.gap>0?`<span class="tag tag-gold">缺口 ${fmt(SOFT.gap)}（${pct(SOFT.ratio)}）· 已选继续提交</span>`:`<span class="tag tag-green">已达标 ${pct(SOFT.ratio)}</span>`)}</td></tr>
+        <tr><td>预检风险行</td><td class="num">目标超历史150%×1 · 保底且历史过低×1 · 保底抬高×3</td></tr>
+      </tbody></table>
+      <div class="toolbar" style="margin-top:18px"><div class="spacer"></div><button class="btn" onclick="actApproval('REJECTED')">模拟驳回</button><button class="btn" onclick="actApproval('SUSPENDED')">模拟审批系统不可用（挂起）</button><button class="btn btn-primary" onclick="actApproval('APPROVED')">模拟审批通过 → 发布</button></div>
+    </div>
+  </div>`;
+}
+
+function renderTracking(){
+  const alerts=getAlerts();
+  const nationRate=TRACK.nation.actual/TRACK.nation.target;
+  const nationGap=Math.max(TRACK.nation.target-TRACK.nation.actual,0);
+  const nColor = nationRate>=TRACK.timeProgress?'green':(nationRate>=TRACK.timeProgress*TRACK.cfg.ratioThreshold?'gold':'red');
+  return `
+  <div class="banner banner-warn"><span>⚠</span><div>演示周期取<b>进行中的 2026-07</b>。<b>总目标达成</b>（国家级）与<b>人员目标达成</b>（促销员级）分母不同、独立统计；预警基于人员目标。达成预警：达成率 &lt; 时间进度×${(TRACK.cfg.ratioThreshold*100).toFixed(0)}%（${pct(TRACK.timeProgress*TRACK.cfg.ratioThreshold)}）；异常预警：连续 ${TRACK.cfg.zeroSalesDays} 天 0 销量。</div></div>
+  <div class="card">
+    <div class="card-title">国家总目标达成　<span class="tag tag-blue">国家级口径</span>　<span class="edit-hint">目标/达成可改</span></div>
+    <div class="card-sub">分母 = 当期国家总目标（非 Σ人员目标）；反映国家大盘进度，与下方人员明细分开看</div>
+    <div class="row">
+      <div class="kpi" style="box-shadow:none;border:1px solid var(--border)"><div class="label">国家总目标（销量）</div><div><input class="cell" style="width:100px;font-size:20px" value="${TRACK.nation.target}" onchange="onNation('target',this.value)"> <small style="color:var(--text-3)">台</small></div></div>
+      <div class="kpi" style="box-shadow:none;border:1px solid var(--border)"><div class="label">累计达成</div><div><input class="cell" style="width:100px;font-size:20px" value="${TRACK.nation.actual}" onchange="onNation('actual',this.value)"> <small style="color:var(--text-3)">台</small></div></div>
+      <div class="kpi" style="box-shadow:none;border:1px solid var(--border)"><div class="label">总目标达成率</div><div class="val" style="font-size:22px"><span class="tag ${COLOR[nColor]}" style="font-size:18px;padding:2px 10px">${pct(nationRate)}</span></div><div class="foot">时间进度 ${pct(TRACK.timeProgress)}</div></div>
+      <div class="kpi" style="box-shadow:none;border:1px solid var(--border)"><div class="label">缺口</div><div class="val" style="font-size:22px">${fmt(nationGap)} <small>台</small></div></div>
+    </div>
+    <div class="progress" style="height:10px;margin-top:14px"><div class="bar" style="width:${Math.min(nationRate*100,100)}%;background:var(--${nColor})"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">预警规则配置　<span class="edit-hint">阈值可改</span></div>
+    <div class="card-sub">可按国家 × 品牌 × 目标类型配置；改动后下表状态色与预警实时重判</div>
+    <div class="param-grid">
+      <div class="param"><label>已过天数 / 总天数</label><div><input class="inp" style="width:56px" value="${TRACK.daysPassed}" onchange="onTrackDays(this.value)"> / ${TRACK.daysTotal} 天　<span class="u">时间进度 ${pct(TRACK.timeProgress)}</span></div></div>
+      <div class="param"><label>达成预警阈值（× 时间进度）</label><div><input class="inp" style="width:64px" value="${TRACK.cfg.ratioThreshold}" onchange="onTrackCfg('ratioThreshold',this.value)"><span class="u">默认 0.30</span></div></div>
+      <div class="param"><label>连续 0 销量天数 N</label><div><input class="inp" style="width:56px" value="${TRACK.cfg.zeroSalesDays}" onchange="onTrackCfg('zeroSalesDays',this.value)"><span class="u">默认 3 天</span></div></div>
+      <div class="param"><label>时间进度下限（免误报）</label><div><input class="inp" style="width:64px" value="${TRACK.cfg.timeFloor}" onchange="onTrackCfg('timeFloor',this.value)"><span class="u">默认 0.10</span></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="toolbar"><div class="card-title" style="margin:0">促销员达成明细（销量）　<span class="tag tag-gold">人员级口径</span>　<span class="edit-hint">达成量可改</span></div><div class="spacer"></div>
+      <span class="mini-legend"><span><span class="dot dot-green"></span>绿 达成率≥时间进度</span><span><span class="dot dot-gold"></span>黄 落后·不推送</span><span><span class="dot dot-red"></span>红 预警·推送</span></span></div>
+    <table>
+      <thead><tr><th>促销员</th><th>门店</th><th class="num">目标</th><th class="num">达成</th><th class="num">连续0销量</th><th class="num">达成率</th><th style="width:120px">进度</th><th class="num">缺口</th><th>状态 / 预警</th></tr></thead>
+      <tbody>${TRACK.rows.map(r=>{
+        const s=trackStatus(r);
+        const barc={green:'var(--green)',gold:'var(--gold)',red:'var(--red)',gray:'#d9d9d9'}[s.color];
+        const w=s.rate==null?0:Math.min(s.rate*100,100);
+        const al=[]; if(r.zero>=TRACK.cfg.zeroSalesDays)al.push('<span class="tag tag-red">0 销量 '+r.zero+'天</span>');
+        if(s.color==='red' && TRACK.timeProgress>=TRACK.cfg.timeFloor)al.push('<span class="tag tag-red">达成预警</span>');
+        return `<tr><td>${r.name}</td><td>${r.store}</td><td class="num">${r.tgt}</td><td class="num"><input class="cell" style="width:64px" value="${r.act}" onchange="onTrackAct('${r.id}','act',this.value)"></td><td class="num"><input class="cell" style="width:52px" value="${r.zero}" onchange="onTrackAct('${r.id}','zero',this.value)"></td><td class="num">${s.rate==null?'—':pct(s.rate)}</td><td><div class="progress"><div class="bar" style="width:${w}%;background:${barc}"></div></div></td><td class="num">${s.gap}</td><td><span class="tag ${COLOR[s.color]}">${COLORTXT[s.color]}</span> ${al.join(' ')}</td></tr>`;
+      }).join("")}</tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">活跃预警列表 <span class="badge-cnt">${alerts.length}</span></div>
+    <div class="card-sub">推送对象：促销员本人 + 所属零售经理；一期仅自动解除，无人工关闭；同一促销员同指标同类型每日仅推一次</div>
+    <table>
+      <thead><tr><th>类型</th><th>促销员</th><th>门店</th><th>目标线</th><th>触发条件</th><th>接收方</th></tr></thead>
+      <tbody>${alerts.length?alerts.map(a=>`<tr><td>${a.type==='LOW_ACHIEVEMENT'?'<span class="tag tag-red">达成预警</span>':'<span class="tag tag-gold">0 销量异常</span>'}</td><td>${a.name}</td><td>${a.store}</td><td>${a.metric}</td><td>${a.detail}</td><td>促销员 + 零售经理</td></tr>`).join(""):'<tr><td colspan="6" style="text-align:center;color:var(--text-3)">当前无活跃预警</td></tr>'}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderRule(){
+  return `
+  <div class="banner banner-info"><span>ⓘ</span><div>新国家上线 = 加一个规则包配置（层级链路 + 拆解算法 + 参数），不改主干代码。以下为孟加拉一期专属包，<b>参数可改，改后回「人员目标拆解」页看联动</b>。</div></div>
+  <div class="card">
+    <div class="card-title">国家规则包配置　<span class="edit-hint">拆解算法参数可改</span></div>
+    <table><tbody>
+      <tr><td style="width:220px">国家 / 品牌 / 目标类型</td><td>孟加拉 / Infinix / 销量　<span class="tag tag-blue">一期国家专属</span></td></tr>
+      <tr><td>层级链路</td><td><code>国家 → 促销员</code>　（孟加拉：国家→人，不经区域）</td></tr>
+      <tr><td>基准公式</td><td>日均激活测算法（上月日均激活 × 本月天数 × 去年同期增幅）<b>× 激励涨幅因子</b></td></tr>
+      <tr><td>激励涨幅因子</td><td>${TOTAL.upliftFactor}　<span class="tag tag-gold">人为抬高</span>　在历史测算值之上再乘，激励冲刺高于上月的销量（各国可差异化配，如 1.15 / 1.20）</td></tr>
+      <tr><td>拆解算法</td><td>孟加拉系数法</td></tr>
+      <tr><td>版本 / 状态</td><td>v3 · <span class="tag tag-green">已启用</span></td></tr>
+    </tbody></table>
+    <div style="margin:16px 0 8px;font-weight:600;font-size:13px">拆解算法参数</div>
+    <div class="param-grid">
+      <div class="param"><label>覆盖率<span class="u">系数分子占比</span></label><input class="inp" style="width:70px" value="${ALGO.coverageRatio}" onchange="onAlgo('coverageRatio',this.value)"></div>
+      <div class="param"><label>保底台数</label><input class="inp" style="width:70px" value="${ALGO.minPerPerson}" onchange="onAlgo('minPerPerson',this.value)"></div>
+      <div class="param"><label>中高端目标填报方式</label><select class="inp" onchange="onAlgo('hspMode',this.value)"><option value="BY_MODEL" ${ALGO.hspMode==='BY_MODEL'?'selected':''}>按机型（每款单独填报）</option><option value="TOTAL" ${ALGO.hspMode==='TOTAL'?'selected':''}>按总量</option></select></div>
+      <div class="param"><label>提示性校验阈值</label><input class="inp" style="width:70px" value="${ALGO.softCheckRatio}" onchange="onAlgo('softCheckRatio',this.value)"></div>
+      <div class="param"><label>清尾折算系数</label><input class="inp" style="width:70px" value="${ALGO.stockDiscount}" onchange="onAlgo('stockDiscount',this.value)"></div>
+      <div class="param"><label>当前系数（自动推导）</label><div><b style="font-size:16px;color:var(--primary-dark)">${COEF}</b><span class="u">=（总目标×覆盖率）÷Σ基础值</span></div></div>
+    </div>
+    <div class="note">修改覆盖率或总目标 → 系数自动重算 → 「人员目标拆解」页按系数法生成的目标随之变化（已被人工改过的单元格保持不变，可用「重新生成」还原）。</div>
+  </div>
+  <div class="card">
+    <div class="card-title">对照：肯尼亚（二期规则包，仅示意）</div>
+    <table><tbody>
+      <tr><td style="width:220px">层级链路</td><td><code>国家 → 区域 → 督导 → 促销员</code></td></tr>
+      <tr><td>基准公式</td><td>年度占比法（年度目标 × 去年月度占比，叠加累计偏差与调价方向）</td></tr>
+    </tbody></table>
+    <div class="note">同一套引擎、不同规则包即可覆盖不同国家的层级与公式差异——这是平台的核心复制能力。</div>
+  </div>`;
+}
+
+/* ============ 交互与编辑联动 ============ */
+const PAGES={overview:["经营概览",renderOverview],total:["总目标测算",renderTotal],person:["人员目标拆解",renderPerson],approval:["目标审批（BPM）",renderApproval],tracking:["执行追踪与预警",renderTracking],rule:["国家规则包配置",renderRule]};
+let CUR="overview";
+function go(key){
+  CUR=key;
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.page===key));
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  const el=document.getElementById("page-"+key); el.innerHTML=PAGES[key][1](); el.classList.add("active");
+  document.getElementById("crumb").textContent=PAGES[key][0];
+  window.scrollTo(0,0);
+}
+function rerender(){ go(CUR); }
+document.getElementById("nav").addEventListener("click",e=>{const it=e.target.closest(".nav-item"); if(it)go(it.dataset.page);});
+
+/* —— 编辑处理器 —— */
+function onTotal(f,v){ const n=parseFloat(v); if(!isNaN(n)){ TOTAL[f]=n; recalcCoef(); } rerender(); }
+function onModel(i,v){ const n=parseInt(v,10); MODELS[i].alloc = isNaN(n)?0:n; rerender(); }
+function onBP(id,f,v){ const bp=BPS.find(b=>b.id===id); if(!bp)return; const n=parseInt(v,10);
+  if(f==='so'){ bp.so = (v===''||isNaN(n))?null:n; } rerender(); }
+function onHspModel(id,m,v){ const bp=BPS.find(b=>b.id===id); if(!bp)return; const n=parseInt(v,10); bp.hsp[m]=isNaN(n)?0:n; rerender(); }
+function onHspTotal(id,v){ const bp=BPS.find(b=>b.id===id); if(!bp)return; let n=parseInt(v,10); if(isNaN(n))n=0; distributeHsp(bp,Math.max(n,0)); rerender(); }
+function regenPerson(){ BPS.forEach(bp=>{ delete bp.so; }); rerender(); }
+function batchEdit(){
+  const p=prompt("按比例统一调整样例 BP 的 SO 目标（输入百分比，如 110 表示上调 10%）：","100");
+  if(p===null) return; const r=parseFloat(p); if(isNaN(r)) return;
+  BPS.forEach(bp=>{ const c=calcTarget(bp); bp.so=Math.max(Math.round(c.val*r/100), ALGO.minPerPerson); });
+  rerender();
+}
+function onAlgo(f,v){
+  if(f==='hspMode'){ ALGO.hspMode=v; }
+  else { const n=parseFloat(v); if(!isNaN(n)) ALGO[f]=n; }
+  recalcCoef(); rerender();
+}
+function onTrackDays(v){ let n=parseInt(v,10); if(isNaN(n))return; n=Math.max(1,Math.min(n,TRACK.daysTotal));
+  TRACK.daysPassed=n; TRACK.timeProgress=+(n/TRACK.daysTotal).toFixed(3); rerender(); }
+function onTrackCfg(f,v){ const n=parseFloat(v); if(!isNaN(n)) TRACK.cfg[f]=n; rerender(); }
+function onTrackAct(id,f,v){ const r=TRACK.rows.find(x=>x.id===id); if(!r)return; const n=parseInt(v,10); r[f]=isNaN(n)?0:n; rerender(); }
+function onNation(f,v){ const n=parseInt(v,10); if(!isNaN(n)) TRACK.nation[f]=n; rerender(); }
+// 拆解基数来源切换：离开 FROM_TOTAL 时用当前总目标×90% 预填人工盘子，避免数字突变
+function onAllocMode(m){
+  if(m!=='FROM_TOTAL' && ALLOC.mode==='FROM_TOTAL'){ ALLOC.manualPool = Math.round(TOTAL.adjustedValue*ALGO.coverageRatio); }
+  ALLOC.mode=m; recalcCoef(); rerender();
+}
+function onAllocPool(v){ const n=parseInt(v,10); if(!isNaN(n)) ALLOC.manualPool=n; recalcCoef(); rerender(); }
+
+/* —— 弹窗 —— */
+function showModal(html){document.getElementById("modal").innerHTML=html; document.getElementById("mask").classList.add("show");}
+function closeModal(){document.getElementById("mask").classList.remove("show");}
+document.getElementById("mask").addEventListener("click",e=>{if(e.target.id==="mask")closeModal();});
+
+function confirmTotal(){
+  const last=TOTAL_VERSIONS[TOTAL_VERSIONS.length-1];
+  if(TOTAL.adjustedValue!==last.value){
+    const reason=(TOTAL.adjustReason||"").trim()||"（未填写调整原因）";
+    TOTAL_VERSIONS.push({ ver:last.ver+1, time:nowStamp(), user:"当前用户（品牌经理）", value:TOTAL.adjustedValue, reason });
+    rerender();
+    showModal(`<h3><span class="tag tag-green">✓</span> 总目标已调整并记录新版本</h3><div class="mbody">国家总目标由 <b>${fmt(last.value)}</b> 调整为 <b>${fmt(TOTAL.adjustedValue)} 台</b>，已生成 <b>V${last.ver+1}</b> 并即时生效（一期调整不走审批流）。</div><div class="mfoot"><button class="btn btn-primary" onclick="closeModal()">知道了</button></div>`);
+  } else {
+    showModal(`<h3><span class="tag tag-green">✓</span> 总目标确认生效</h3><div class="mbody">国家总目标 <b>${fmt(TOTAL.adjustedValue)} 台</b> 与当前版本 <b>V${last.ver}</b> 一致，未产生新版本。人员目标线可独立发起，两线并行。</div><div class="mfoot"><button class="btn btn-primary" onclick="closeModal()">知道了</button></div>`);
+  }
+}
+function savePersonVersion(){
+  const el=document.getElementById('pvReason'); const reason=((el&&el.value)||"").trim()||"（未填写调整原因）";
+  const last=PERSON_VERSIONS[PERSON_VERSIONS.length-1];
+  const sum=SOFT.personSum; const changed=BPS.filter(bp=>bp.so!=null||bp.manual).length;
+  PERSON_VERSIONS.push({ ver:last.ver+1, time:nowStamp(), user:"当前用户（品牌经理）", sum, changed, reason });
+  rerender();
+  showModal(`<h3><span class="tag tag-green">✓</span> 人员目标调整已记录新版本</h3><div class="mbody">已生成 <b>V${last.ver+1}</b>：Σ人员销量 <b>${fmt(sum)} 台</b>，其中 <b>${changed}</b> 名促销员为人工调整（样例口径）。一期调整不走审批流，即时留痕。</div><div class="mfoot"><button class="btn btn-primary" onclick="closeModal()">知道了</button></div>`);
+}
+
+function submitPerson(){
+  if(!SOFT.hasCheck){
+    showModal(`<h3><span class="tag tag-blue">ⓘ</span> 总目标未建，跳过提示性校验</h3><div class="mbody">本月总目标尚未建立，提示性校验（Σ人员 ≥ 总目标×90%）暂不进行。人员目标可<b>先行提交审批</b>；待总目标建立后系统自动回填校验结果。当前 Σ人员销量 <b>${fmt(SOFT.personSum)} 台</b>。</div><div class="mfoot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();go('approval')">提交 → 送审批</button></div>`);
+    return;
+  }
+  if(SOFT.gap<=0){
+    showModal(`<h3><span class="tag tag-green">✓</span> 提示性校验通过</h3><div class="mbody">人员目标销量合计 <b>${fmt(SOFT.personSum)} 台</b>（${pct(SOFT.ratio)}）已达总目标 90%，直接提交公司审批系统。</div><div class="mfoot"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal();go('approval')">提交 → 送审批</button></div>`);
+    return;
+  }
+  showModal(`<h3><span style="color:var(--gold)">⚠</span> 提示性校验未达 90%</h3>
+    <div class="mbody">人员目标销量合计低于总目标的 90%，系统仅提示、<b>不阻断</b>提交。你可以继续提交或返回修改。</div>
+    <div class="gap-box"><div class="g-row"><span>Σ 人员销量目标</span><b>${fmt(SOFT.personSum)} 台</b></div><div class="g-row"><span>阈值（总目标 × 90%）</span><b>${fmt(SOFT.threshold)} 台</b></div><div class="g-row"><span>缺口 / 占比</span><b>${fmt(SOFT.gap)} 台（${pct(SOFT.ratio)}）</b></div></div>
+    <div class="mfoot"><button class="btn" onclick="closeModal()">返回修改</button><button class="btn btn-primary" onclick="closeModal();go('approval')">继续提交 → 送审批</button></div>`);
+}
+
+function actApproval(res){
+  const map={APPROVED:["已通过","审批通过，人员目标已发布生效，并已触发促销员通知（DCR App）。","tag-green"],REJECTED:["已驳回","品牌经理驳回，目标退回草稿，可修改后重新提交。","tag-red"],SUSPENDED:["已挂起","审批系统暂不可用，目标已挂起、不丢失；恢复后可续提交（降级路径）。","tag-gold"]};
+  const m=map[res]; APPROVAL.status=res;
+  showModal(`<h3><span class="tag ${m[2]}">${m[0]}</span> 审批结果</h3><div class="mbody">${m[1]}</div><div class="mfoot"><button class="btn btn-primary" onclick="closeModal();go('approval')">确定</button></div>`);
+}
+
+recalcCoef();
+go("overview");
+</script>
+</body>
+</html>

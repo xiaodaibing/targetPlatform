@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: ""
+title: 仓库级元数据与协作宪法
+scope:
+    - .gitignore
+    - CLAUDE.md
+    - LICENSE
+source_files: []
+depends_on: []
+related_to: []

@@ -1,0 +1,18 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: main
+nodes_managed: true
+exported_at: "2026-07-23T03:55:08Z"
+modules:
+    "":
+        dir_name: 仓库级元数据与协作宪法
+        title: 仓库级元数据与协作宪法
+        scope:
+            - .gitignore
+            - CLAUDE.md
+            - LICENSE
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
