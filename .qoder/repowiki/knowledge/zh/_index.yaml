@@ -3,15 +3,25 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-23T03:55:08Z"
+exported_at: "2026-07-23T07:35:13Z"
 modules:
     "":
-        dir_name: 仓库级元数据与协作宪法
-        title: 仓库级元数据与协作宪法
+        dir_name: 目标&达成管理平台仓库顶层元数据
+        title: 目标&达成管理平台仓库顶层元数据
         scope:
             - .gitignore
             - CLAUDE.md
             - LICENSE
+        source_files: []
+        children:
+            - docs
+        depends_on: []
+        related_to: []
+    docs:
+        dir_name: 目标&达成管理平台文档与决策记录
+        title: 目标&达成管理平台文档与决策记录
+        scope:
+            - docs/
         source_files: []
         children: []
         depends_on: []

@@ -139,8 +139,10 @@
       <div class="txt"><b>目标&达成管理</b><span>MVP · 孟加拉试点</span></div>
     </div>
     <nav class="nav" id="nav">
-      <div class="nav-group">目标经营</div>
-      <div class="nav-item active" data-page="overview"><span class="ico">▤</span>经营概览</div>
+      <div class="nav-group">国家经营</div>
+      <div class="nav-item active" data-page="workbench"><span class="ico">▦</span>目标工作台</div>
+      <div class="nav-item" data-page="overview"><span class="ico">▤</span>经营概览</div>
+      <div class="nav-group">目标制定</div>
       <div class="nav-item" data-page="total"><span class="ico">◈</span>总目标测算</div>
       <div class="nav-item" data-page="person"><span class="ico">◇</span>人员目标拆解</div>
       <div class="nav-item" data-page="approval"><span class="ico">✓</span>目标审批</div>
@@ -151,7 +153,7 @@
   </aside>
   <div class="main">
     <div class="topbar">
-      <div class="crumb" id="crumb">经营概览</div>
+      <div class="crumb" id="crumb">目标工作台</div>
       <div class="spacer"></div>
       <div class="ctx">
         <span class="pill">🇧🇩 孟加拉</span>
@@ -159,10 +161,11 @@
         <span class="pill">类型 销量</span>
         <span class="pill">周期 2026-08</span>
       </div>
-      <div class="user"><span class="avatar">RM</span>零售经理 · Rezaul</div>
+      <div class="user"><span class="avatar">国</span>国家经理 · Tareq</div>
     </div>
     <div class="content" id="content">
-      <div class="page active" id="page-overview"></div>
+      <div class="page active" id="page-workbench"></div>
+      <div class="page" id="page-overview"></div>
       <div class="page" id="page-total"></div>
       <div class="page" id="page-person"></div>
       <div class="page" id="page-approval"></div>
@@ -273,6 +276,22 @@ const PERSON_VERSIONS = [
   { ver:2, time:"2026-07-31 10:40", user:"Rezaul（品牌经理）", sum:65998, changed:1, reason:"对 Nadia Sultana（旗舰店）人工上调至 150 台" },
 ];
 
+/* —— 国家经理：多目标组合（工作台清单）—— */
+const STATUS_MAP = {
+  DRAFT:["tag-gray","草稿"], SUBMITTED:["tag-blue","已提交"], IN_REVIEW:["tag-blue","审批中"],
+  APPROVED:["tag-green","已生效"], EFFECTIVE:["tag-green","执行中"], REJECTED:["tag-red","已驳回"],
+  SUSPENDED:["tag-gold","已挂起"], CLOSED:["tag-gray","已结束"],
+};
+let WB_FILTER="ALL";
+const TARGETS = [
+  { id:"T-2608-INF-SO",  period:"2026-08", brand:"Infinix", type:"销量",   scope:"孟加拉·全国", owner:"Rezaul（品牌经理）", updated:"2026-07-31 10:40", status:"IN_REVIEW", ver:"总V2 / 人V2", target:75000, rate:null, live:true,    note:"人员目标审批中，待品牌经理 Ashfaq" },
+  { id:"T-2607-INF-SO",  period:"2026-07", brand:"Infinix", type:"销量",   scope:"孟加拉·全国", owner:"Rezaul（品牌经理）", updated:"2026-06-28 16:20", status:"EFFECTIVE", ver:"总V3 / 人V4", target:62000, rate:null, running:true, note:"执行中，达成落后于时间进度" },
+  { id:"T-2608-INF-HSP", period:"2026-08", brand:"Infinix", type:"中高端", scope:"孟加拉·全国", owner:"Rezaul（品牌经理）", updated:"2026-07-29 09:10", status:"DRAFT",     ver:"总V1",        target:9500,  rate:null, note:"草稿未提交：中高端目标待拆解到机型" },
+  { id:"T-2608-TEC-SO",  period:"2026-08", brand:"TECNO",   type:"销量",   scope:"孟加拉·全国", owner:"Kamal（品牌经理）",  updated:"2026-07-28 14:05", status:"DRAFT",     ver:"总V1",        target:41000, rate:null, note:"草稿未提交：等待大数据激活预测回填" },
+  { id:"T-2607-ITE-SO",  period:"2026-07", brand:"itel",    type:"销量",   scope:"孟加拉·全国", owner:"Kamal（品牌经理）",  updated:"2026-07-02 11:30", status:"REJECTED",  ver:"总V1 / 人V1", target:23000, rate:null, note:"人员目标被驳回：门店覆盖不足，退回修改" },
+  { id:"T-2606-INF-SO",  period:"2026-06", brand:"Infinix", type:"销量",   scope:"孟加拉·全国", owner:"Rezaul（品牌经理）", updated:"2026-06-30 23:00", status:"CLOSED",    ver:"总V2 / 人V3", target:58000, rate:1.03, note:"已结束：最终达成 103%" },
+];
+
 /* —— 目标审批（对接公司 BPM） —— */
 const APPROVAL = {
   status:"IN_REVIEW",
@@ -344,6 +363,85 @@ const COLOR={green:"tag-green",gold:"tag-gold",red:"tag-red",gray:"tag-gray"};
 const COLORTXT={green:"绿 · 正常",gold:"黄 · 落后",red:"红 · 预警",gray:"—"};
 
 /* ============ 页面渲染 ============ */
+function renderWorkbench(){
+  const alerts=getAlerts();
+  const rows = TARGETS.map(t=>{
+    const r={...t};
+    if(t.live){ r.target=TOTAL.adjustedValue; r.status=APPROVAL.status; r.ver=`总V${TOTAL_VERSIONS.length} / 人V${PERSON_VERSIONS.length}`; }
+    if(t.running){ r.rate=TRACK.nation.actual/TRACK.nation.target; }
+    return r;
+  });
+  const isTodo = s => ['DRAFT','SUBMITTED','IN_REVIEW','REJECTED','SUSPENDED'].includes(s);
+  const cntManage = rows.filter(r=>r.status!=='CLOSED').length;
+  const cntTodo   = rows.filter(r=>isTodo(r.status)).length;
+  const running   = rows.find(r=>r.running);
+  const runRate   = running? running.rate : null;
+  const tp        = TRACK.timeProgress;
+  const runColor  = runRate==null?'gray':(runRate>=tp?'green':(runRate>=tp*TRACK.cfg.ratioThreshold?'gold':'red'));
+
+  // 待办 / 关注（由清单状态 + 执行健康度 + 预警派生）
+  const todos=[];
+  rows.forEach(r=>{
+    if(r.status==='IN_REVIEW'||r.status==='SUBMITTED') todos.push({c:'tag-blue',i:'◷',t:`${r.period} ${r.brand}·${r.type}`,d:'人员目标审批中，待品牌经理审批',id:r.id});
+    if(r.status==='DRAFT')    todos.push({c:'tag-gray',i:'✎',t:`${r.period} ${r.brand}·${r.type}`,d:'草稿未提交，待完善并送审',id:r.id});
+    if(r.status==='REJECTED') todos.push({c:'tag-red', i:'✕',t:`${r.period} ${r.brand}·${r.type}`,d:'已驳回，需修改后重新提交',id:r.id});
+  });
+  if(running && runRate<tp) todos.push({c:'tag-gold',i:'⚠',t:`${running.period} ${running.brand}·${running.type}`,d:`执行落后：总目标达成 ${pct(runRate)} < 时间进度 ${pct(tp)}`,id:running.id});
+  if(alerts.length)         todos.push({c:'tag-red', i:'🔔',t:'执行追踪预警',d:`${alerts.length} 名促销员触发达成/0销量预警`,id:running?running.id:'T-2607-INF-SO'});
+
+  const FILTERS=[['ALL',`全部 ${rows.length}`],['TODO',`待处理 ${cntTodo}`],['EFFECTIVE','执行中'],['CLOSED','已结束']];
+  const view = rows.filter(r=> WB_FILTER==='ALL' ? true : WB_FILTER==='TODO' ? isTodo(r.status) : r.status===WB_FILTER);
+
+  return `
+  <div class="banner banner-info"><span>▦</span><div><b>国家经理工作台</b>：一屏看全孟加拉在管的所有目标（多周期 / 多品牌 / 多类型），聚焦“哪些要我处理”与“执行得怎么样”。点击任一目标进入其制定→审批→执行链路。</div></div>
+
+  <div class="row" style="margin-bottom:18px">
+    <div class="kpi"><div class="label">在管目标</div><div class="val">${cntManage}<small> 个</small></div><div class="foot">未结束的目标（草稿/审批/执行中）</div></div>
+    <div class="kpi"><div class="label">待我处理</div><div class="val" style="color:${cntTodo?'var(--gold)':'var(--text)'}">${cntTodo}<small> 项</small></div><div class="foot">草稿 / 审批中 / 已驳回，需推进</div></div>
+    <div class="kpi"><div class="label">执行中达成 <span class="tag tag-blue">国家级</span></div><div class="val"><span class="tag ${COLOR[runColor]}" style="font-size:20px;padding:2px 10px">${pct(runRate)}</span></div><div class="foot">${running?`${running.period} ${running.brand} · 时间进度 ${pct(tp)}`:'—'}</div></div>
+    <div class="kpi"><div class="label">活跃预警</div><div class="val" style="color:${alerts.length?'var(--red)':'var(--green)'}">${alerts.length}<small> 条</small></div><div class="foot">执行追踪页促销员达成/0销量预警</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔔 待办与关注</div>
+    <div class="card-sub">系统按目标状态、执行健康度与预警自动汇总，点击直达对应目标。</div>
+    ${todos.length? todos.map(x=>`
+      <div onclick="openTarget('${x.id}')" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;cursor:pointer">
+        <span class="tag ${x.c}">${x.i}</span>
+        <div style="flex:1"><b>${x.t}</b>　<span style="color:var(--text-2)">${x.d}</span></div>
+        <span style="color:var(--text-3)">进入 ›</span>
+      </div>`).join('') : '<div class="note">当前没有待办事项，全部目标进展正常。</div>'}
+  </div>
+
+  <div class="card">
+    <div class="card-title">目标清单</div>
+    <div class="toolbar">
+      ${FILTERS.map(([k,label])=>`<button class="btn btn-sm ${WB_FILTER===k?'btn-primary':''}" onclick="wbFilter('${k}')">${label}</button>`).join('')}
+      <div class="spacer"></div>
+      <span class="note">共 ${view.length} 条（当前筛选）</span>
+    </div>
+    <table>
+      <thead><tr><th>周期</th><th>品牌</th><th>类型</th><th>范围</th><th class="num">总目标</th><th class="num">达成率</th><th>版本</th><th>负责人</th><th>更新时间</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody>
+        ${view.map(r=>{
+          const s=STATUS_MAP[r.status]||['tag-gray',r.status];
+          const rc = r.rate==null?'gray':(r.rate>=1?'green':(r.running?runColor:'gold'));
+          const act = r.live?'进入制定':r.running?'看达成':'查看';
+          return `<tr>
+            <td><b>${r.period}</b>${r.live?' <span class="tag tag-blue" style="font-size:11px">本期焦点</span>':''}</td>
+            <td>${r.brand}</td><td>${r.type}</td><td>${r.scope}</td>
+            <td class="num">${fmt(r.target)}</td>
+            <td class="num">${r.rate==null?'<span style="color:var(--text-3)">—</span>':`<span class="tag ${COLOR[rc]}">${pct(r.rate)}</span>`}</td>
+            <td>${r.ver}</td><td>${r.owner}</td><td style="color:var(--text-3)">${r.updated}</td>
+            <td><span class="tag ${s[0]}">${s[1]}</span></td>
+            <td><button class="btn btn-sm" onclick="openTarget('${r.id}')">${act}</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div class="note">MVP 聚焦「2026-08 Infinix 销量」这一条的完整链路（本期焦点，可编辑联动）；其余为国家经理多目标管理台的样例记录，用于展示态势与待办形态。</div>
+  </div>`;
+}
 function renderOverview(){
   const alerts=getAlerts();
   // 人员目标达成：分母=Σ人员目标（样例 12 人）；与总目标达成分开统计
@@ -632,8 +730,8 @@ function renderRule(){
 }
 
 /* ============ 交互与编辑联动 ============ */
-const PAGES={overview:["经营概览",renderOverview],total:["总目标测算",renderTotal],person:["人员目标拆解",renderPerson],approval:["目标审批（BPM）",renderApproval],tracking:["执行追踪与预警",renderTracking],rule:["国家规则包配置",renderRule]};
-let CUR="overview";
+const PAGES={workbench:["目标工作台",renderWorkbench],overview:["经营概览",renderOverview],total:["总目标测算",renderTotal],person:["人员目标拆解",renderPerson],approval:["目标审批（BPM）",renderApproval],tracking:["执行追踪与预警",renderTracking],rule:["国家规则包配置",renderRule]};
+let CUR="workbench";
 function go(key){
   CUR=key;
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.page===key));
@@ -722,8 +820,18 @@ function actApproval(res){
   showModal(`<h3><span class="tag ${m[2]}">${m[0]}</span> 审批结果</h3><div class="mbody">${m[1]}</div><div class="mfoot"><button class="btn btn-primary" onclick="closeModal();go('approval')">确定</button></div>`);
 }
 
+/* —— 工作台交互 —— */
+function wbFilter(k){ WB_FILTER=k; rerender(); }
+function openTarget(id){
+  const t=TARGETS.find(x=>x.id===id); if(!t) return;
+  if(t.live){ go('total'); return; }
+  if(t.running){ go('tracking'); return; }
+  const s=STATUS_MAP[t.status]||['tag-gray',t.status];
+  showModal(`<h3><span class="tag ${s[0]}">${s[1]}</span> ${t.period} ${t.brand} · ${t.type}</h3><div class="mbody">该目标为国家经理工作台的<b>样例记录</b>（负责人 ${t.owner}）。当前 MVP 聚焦「2026-08 Infinix 销量」的完整制定→审批→执行链路；此处点击“进入”在正式版将打开本目标各自的制定/执行页。<div class="gap-box" style="background:var(--bg);border-color:var(--border)"><div class="g-row"><span>状态</span><b>${s[1]}</b></div><div class="g-row"><span>版本</span><b>${t.ver}</b></div><div class="g-row"><span>总目标</span><b>${fmt(t.target)} 台</b></div><div class="g-row"><span>说明</span><b>${t.note}</b></div></div></div><div class="mfoot"><button class="btn btn-primary" onclick="closeModal()">知道了</button></div>`);
+}
+
 recalcCoef();
-go("overview");
+go("workbench");
 </script>
 </body>
 </html>
